@@ -84,8 +84,7 @@ func analyzeRepo(c *fiber.Ctx) error {
 		"message":      "Analysis completed",
 		"totalAdded":   totalAdded,
 		"totalRemoved": totalRemoved,
-		"totalCommits": len(stats),
-		"ztats":        stats,
+		"stats":        stats,
 	})
 }
 
