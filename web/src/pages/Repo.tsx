@@ -46,28 +46,63 @@ export default function Repo() {
   }
 
   return (
-    <div className="min-h-screen max-w-6xl mx-auto px-4 py-10">
-      <CommitGraph
-        stats={data.stats}
-        totalAdded={data.totalAdded}
-        totalRemoved={data.totalRemoved}
-      />
-      <h1 className="text-4xl font-bold mb-4">Repository</h1>
-      <div className="space-y-2">
-        <p className="text-xl">
-          <span className="text-neutral-400">Username:</span>{' '}
-          <span className="text-blue-400 font-semibold">{username}</span>
-        </p>
-        <p className="text-xl">
-          <span className="text-neutral-400">Repository:</span>{' '}
-          <span className="text-blue-400 font-semibold">{repo}</span>
-        </p>
+    <div className="min-h-screen py-10">
+      <div className="max-w-6xl mx-auto px-4">
+        <CommitGraph
+          stats={data.stats}
+          totalAdded={data.totalAdded}
+          totalRemoved={data.totalRemoved}
+        />
+        <h1 className="text-4xl font-bold mb-4">Repository</h1>
+        <div className="space-y-2">
+          <p className="text-xl">
+            <span className="text-neutral-400">Username:</span>{' '}
+            <span className="text-blue-400 font-semibold">{username}</span>
+          </p>
+          <p className="text-xl">
+            <span className="text-neutral-400">Repository:</span>{' '}
+            <span className="text-blue-400 font-semibold">{repo}</span>
+          </p>
+        </div>
+        {data && (
+          <p className="text-green-400 mt-4">
+            {data?.message || 'Analysis completed'}
+          </p>
+        )}
       </div>
-      {data && (
-        <p className="text-green-400 mt-4">
-          {data?.message || 'Analysis completed'}
-        </p>
-      )}
+
+      <div className="max-w-6xl mx-auto px-4 grid grid-cols-2">
+        <div className="p-10 border-r-2 border-obsidian-field">
+          <h3 className="font-bold text-3xl">Craziest week</h3>
+          <p className="mb-4 font-medium text-lg tracking-wide text-ion-drift">
+            The week with the most commits
+          </p>
+
+          <h3 className="font-black text-4xl mb-5">5,432 commits</h3>
+          <div className="gap-y-2 grid grid-cols-[1fr_auto] items-center gap-x-4">
+            <div className="px-4 h-12 bg-core-flux flex items-center">
+              <p className="text-lg font-bold text-obsidian-field">Monday</p>
+            </div>
+            <p className="text-lg font-bold">823 commits</p>
+
+            <div
+              className="px-4 h-12 bg-core-flux flex items-center"
+              style={{ width: '80%' }}
+            >
+              <p className="text-lg font-bold text-obsidian-field">Monday</p>
+            </div>
+            <p className="text-lg font-bold">823 commits</p>
+
+            <div
+              className="px-4 h-12 bg-core-flux flex items-center"
+              style={{ width: '60%' }}
+            >
+              <p className="text-lg font-bold text-obsidian-field">Monday</p>
+            </div>
+            <p className="text-lg font-bold">823 commits</p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

@@ -105,14 +105,11 @@ func cloneRepo(repoURL string) ([]CommitStats, error) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	// 2. Clone repo
-	cloneCmd := exec.Command("git", "clone", repoURL, tmpDir)
-	// cloneCmd := exec.Command("git", "clone", "--depth", "1000", repoURL, tmpDir)
+	cloneCmd := exec.Command("git", "clone", "--bare", "--single-branch", repoURL, tmpDir)
 	if err := cloneCmd.Run(); err != nil {
 		return nil, err
 	}
 
-	// 3. Run git log command
 	cmd := exec.Command("git", "log", "--numstat", "--pretty=format:%H|%an|%ad|%s", "--date=iso")
 	cmd.Dir = tmpDir
 	output, err := cmd.Output()
