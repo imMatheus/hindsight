@@ -17,25 +17,25 @@ export const LoadingAnimation: React.FC = ({}) => {
         }
         `}</style>
       <div className="">
-        <div className="h-52 w-52 relative">
+        <div className="relative h-52 w-52">
           <div
-            className="absolute size-1/2 bg-core-flux rounded-full top-0 left-0"
+            className="bg-core-flux absolute top-0 left-0 size-1/2 rounded-full"
             style={{ animation: `loader-1 ${animationDuration}ms infinite` }}
           />
           <div
-            className="absolute size-1/2 bg-pinky rounded-full top-0 right-0"
+            className="bg-pinky absolute top-0 right-0 size-1/2 rounded-full"
             style={{ animation: `loader-2 ${animationDuration}ms infinite` }}
           />
           <div
-            className="absolute size-1/2 bg-ion-drift rounded-full bottom-0 left-0"
+            className="bg-ion-drift absolute bottom-0 left-0 size-1/2 rounded-full"
             style={{ animation: `loader-2 ${animationDuration}ms infinite` }}
           />
           <div
-            className="absolute size-1/2 bg-magnetic-mist rounded-full bottom-0 right-0"
+            className="bg-polar-sand absolute right-0 bottom-0 size-1/2 rounded-full"
             style={{ animation: `loader-1 ${animationDuration}ms infinite` }}
           />
         </div>
-        <p className="text-sm text-center font-medium pt-2">
+        <p className="pt-2 text-center text-sm font-medium">
           cranking the numbers...
         </p>
       </div>

@@ -94,20 +94,29 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
         representativeDate: stat.date,
       }
     })
-    .reduce((acc, curr) => {
-      const existing = acc.find((item) => item.date === curr.date)
-      if (existing) {
-        existing.added += curr.added
-        existing.removed += curr.removed
-        existing.commitCount += 1
-      } else {
-        acc.push({
-          ...curr,
-          commitCount: 1,
-        })
-      }
-      return acc
-    }, [] as Array<{ date: string; added: number; removed: number; commitCount: number; representativeDate: string }>)
+    .reduce(
+      (acc, curr) => {
+        const existing = acc.find((item) => item.date === curr.date)
+        if (existing) {
+          existing.added += curr.added
+          existing.removed += curr.removed
+          existing.commitCount += 1
+        } else {
+          acc.push({
+            ...curr,
+            commitCount: 1,
+          })
+        }
+        return acc
+      },
+      [] as Array<{
+        date: string
+        added: number
+        removed: number
+        commitCount: number
+        representativeDate: string
+      }>
+    )
     .sort((a, b) => a.date.localeCompare(b.date))
 
   // Calculate cumulative lines
@@ -125,7 +134,7 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
   console.log({ chartData, groupBy, daysDiff })
 
   return (
-    <Card className="w-full relative py-0">
+    <Card className="relative w-full py-0">
       <CardHeader className="flex flex-col items-stretch border-b p-0! sm:flex-row">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 pt-4 pb-3 sm:py-0!">
           <CardTitle>Cumulative Lines Over Time</CardTitle>
@@ -134,24 +143,24 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
           </CardDescription>
         </div>
         <div className="flex">
-          <button className="select-text shrink-0 relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6">
-            <span className="text-muted-foreground text-nowrap text-xs">
+          <button className="relative z-30 flex flex-1 shrink-0 flex-col justify-center gap-1 border-t px-6 py-4 text-left select-text even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6">
+            <span className="text-muted-foreground text-xs text-nowrap">
               Total lines
             </span>
             <span className="text-lg leading-none font-bold sm:text-3xl">
               {(totalAdded - totalRemoved).toLocaleString()}
             </span>
           </button>
-          <button className="select-text shrink-0 relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6">
-            <span className="text-muted-foreground text-nowrap text-xs">
+          <button className="relative z-30 flex flex-1 shrink-0 flex-col justify-center gap-1 border-t px-6 py-4 text-left select-text even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6">
+            <span className="text-muted-foreground text-xs text-nowrap">
               Total lines added
             </span>
             <span className="text-lg leading-none font-bold sm:text-3xl">
               {totalAdded.toLocaleString()}
             </span>
           </button>
-          <button className="select-text shrink-0 relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6">
-            <span className="text-muted-foreground text-nowrap text-xs">
+          <button className="relative z-30 flex flex-1 shrink-0 flex-col justify-center gap-1 border-t px-6 py-4 text-left select-text even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6">
+            <span className="text-muted-foreground text-xs text-nowrap">
               Total lines removed
             </span>
             <span className="text-lg leading-none font-bold sm:text-3xl">
@@ -202,6 +211,7 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
               tickFormatter={(value) => value.toLocaleString()}
             />
             <ChartTooltip
+              active
               content={
                 <ChartTooltipContent
                   labelFormatter={(value, payload) => {
@@ -236,7 +246,7 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
                     return (
                       <div className="font-medium">
                         <div>{formattedDate}</div>
-                        <div className="text-muted-foreground text-xs font-normal mt-0.5">
+                        <div className="text-muted-foreground mt-0.5 text-xs font-normal">
                           {data.commitCount}{' '}
                           {data.commitCount === 1 ? 'commit' : 'commits'}
                         </div>

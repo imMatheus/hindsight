@@ -29,21 +29,21 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen h-full flex items-center justify-center px-4">
-      <div className="w-full max-w-2xl h-full">
-        <h1 className="text-4xl font-bold text-center mb-8">
+    <div className="flex h-full min-h-screen items-center justify-center px-4">
+      <div className="h-full w-full max-w-2xl">
+        <h1 className="mb-8 text-center text-4xl font-bold">
           Enter GitHub Repository
         </h1>
         <form
           onSubmit={handleSubmit}
-          className="w-full p-8 rounded-full border bg-core-flux"
+          className="bg-core-flux w-full rounded-full border p-8"
         >
           <input
             type="text"
             value={repoUrl}
             onChange={(e) => setRepoUrl(e.target.value)}
             placeholder="https://github.com/username/repo or username/repo"
-            className="w-full px-6 py-4 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-6 py-4 text-lg focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
             autoFocus
           />
         </form>
@@ -59,29 +59,40 @@ export default function Home() {
 const BottomUi = () => {
   const Tab = ({ color }: { color: 'pink' | 'blue' | 'orange' }) => (
     <div
-      className={`w-20 hover:w-28 shrink-0 h-10 transition-all duration-1000 hover:duration-150 ease-in-out  rounded-full ${
+      className={`h-10 w-20 shrink-0 rounded-full transition-all duration-1000 ease-in-out hover:w-28 hover:duration-150 ${
         color === 'pink'
           ? 'bg-pinky'
           : color === 'blue'
-          ? 'bg-ion-drift'
-          : 'bg-core-flux'
+            ? 'bg-ion-drift'
+            : 'bg-core-flux'
       }`}
     ></div>
   )
 
   return (
     <div className="space-y-1.5">
-      <div className="flex gap-1.5 justify-center">
+      <div className="flex justify-center gap-1.5">
         <Tab color="pink" />
         <Tab color="blue" />
         <Tab color="orange" />
         <Tab color="pink" />
         <Tab color="orange" />
-
+        <Tab color="blue" />
+        <Tab color="pink" />
+        <Tab color="pink" />
+        <Tab color="blue" />
+        <Tab color="orange" />
+        <Tab color="pink" />
+        <Tab color="orange" />
         <Tab color="blue" />
         <Tab color="pink" />
       </div>
-      <div className="flex gap-1.5 justify-center">
+      <div className="flex justify-center gap-1.5">
+        <Tab color="blue" />
+        <Tab color="orange" />
+        <Tab color="blue" />
+        <Tab color="orange" />
+        <Tab color="blue" />
         <Tab color="blue" />
         <Tab color="orange" />
         <Tab color="blue" />
@@ -91,28 +102,32 @@ const BottomUi = () => {
         <Tab color="orange" />
         <Tab color="blue" />
       </div>
-      <div className="flex gap-1.5 justify-center">
+      <div className="flex justify-center gap-1.5">
         <Tab color="orange" />
         <Tab color="blue" />
         <Tab color="orange" />
-        <Tab color="blue" />
+        <Tab color="orange" />
         <Tab color="pink" />
+        <Tab color="orange" />
+        <Tab color="blue" />
+        <Tab color="orange" />
         <Tab color="orange" />
         <Tab color="pink" />
         <Tab color="blue" />
         <Tab color="orange" />
       </div>
-      <div className="flex gap-1.5 justify-center">
+      <div className="flex justify-center gap-1.5">
         <Tab color="pink" />
-        <Tab color="blue" />
-        <Tab color="orange" />
-        <Tab color="blue" />
-        <Tab color="orange" />
         <Tab color="blue" />
         <Tab color="pink" />
         <Tab color="orange" />
         <Tab color="pink" />
+        <Tab color="blue" />
         <Tab color="orange" />
+        <Tab color="blue" />
+        <Tab color="pink" />
+        <Tab color="orange" />
+        <Tab color="blue" />
       </div>
     </div>
   )

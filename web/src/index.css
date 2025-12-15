@@ -23,7 +23,8 @@
   --border: oklch(0.92 0.004 286.32);
   --input: oklch(0.92 0.004 286.32);
   --ring: oklch(0.75 0.183 55.934);
-  --chart-1: oklch(0.837 0.128 66.29);
+  /* --chart-1: oklch(0.837 0.128 66.29); */
+  --chart-1: #eb603e;
   --chart-2: oklch(0.705 0.213 47.604);
   --chart-3: oklch(0.646 0.222 41.116);
   --chart-4: oklch(0.553 0.195 38.402);
@@ -40,46 +41,12 @@
   --polar-sand: #f5f5ed;
   /* --core-flux: #ff6038; */
   --core-flux: #eb603e;
-  --magnetic-mist: #ebecdc;
+  /* --magnetic-mist: #ebecdc; */
   --alloy-ember: #b88826;
   /* --obsidian-field: #361e1c; */
   --obsidian-field: #2e1615;
   --ion-drift: #a0b5cb;
   --pinky: #ffb0f4;
-}
-
-.dark {
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.705 0.213 47.604);
-  --primary-foreground: oklch(0.98 0.016 73.684);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.408 0.123 38.172);
-  --chart-1: oklch(0.837 0.128 66.29);
-  --chart-2: oklch(0.705 0.213 47.604);
-  --chart-3: oklch(0.646 0.222 41.116);
-  --chart-4: oklch(0.553 0.195 38.402);
-  --chart-5: oklch(0.47 0.157 37.304);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.705 0.213 47.604);
-  --sidebar-primary-foreground: oklch(0.98 0.016 73.684);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.408 0.123 38.172);
 }
 
 @theme inline {
@@ -124,14 +91,21 @@
 
   --color-polar-sand: var(--polar-sand);
   --color-core-flux: var(--core-flux);
-  --color-magnetic-mist: var(--magnetic-mist);
   --color-alloy-ember: var(--alloy-ember);
   --color-obsidian-field: var(--obsidian-field);
   --color-ion-drift: var(--ion-drift);
   --color-pinky: var(--pinky);
 }
 
+@utility flex-center {
+  @apply flex items-center justify-center;
+}
+
 body {
   @apply bg-obsidian-field text-polar-sand font-sans;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family:
+    'Inter',
+    system-ui,
+    -apple-system,
+    sans-serif;
 }

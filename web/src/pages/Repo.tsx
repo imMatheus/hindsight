@@ -21,6 +21,7 @@ async function analyzeRepo(username: string, repo: string) {
     message: string
     totalAdded: number
     totalRemoved: number
+    totalContributors: number
     stats: CommitStats[]
   }>
 }
@@ -58,9 +59,27 @@ export default function Repo() {
             ← Search another one
           </Link>
         </div>
-        <div className="mb-3">
-          <h1 className="mb-3 text-5xl font-black tracking-tight">{repo}</h1>
-          <h3 className="text-2xl font-medium tracking-tight">{username}</h3>
+        <div className="mb-10 flex justify-between">
+          <div className="">
+            <h1 className="mb-3 text-5xl font-black tracking-tight">{repo}</h1>
+            <h3 className="text-xl font-medium tracking-tight">{username}</h3>
+          </div>
+
+          <div className="flex gap-2">
+            <div className="flex-center text-pinky bg-core-flux flex-col rounded-full px-10 py-5 text-right">
+              <p className="w-full text-4xl font-black">
+                {data.stats.length.toLocaleString()}
+              </p>
+              <p className="font-semibold">Total commits</p>
+            </div>
+
+            <div className="flex-center text-core-flux bg-pinky flex-col rounded-full px-10 py-5 text-right">
+              <p className="w-full text-4xl font-black">
+                {data.totalContributors.toLocaleString()}
+              </p>
+              <p className="font-semibold">Contributors</p>
+            </div>
+          </div>
         </div>
 
         <CommitGraph
@@ -68,6 +87,32 @@ export default function Repo() {
           totalAdded={data.totalAdded}
           totalRemoved={data.totalRemoved}
         />
+      </div>
+
+      <div className="group mx-auto my-10 grid max-w-6xl grid-rows-3 space-y-3">
+        <div className="flex gap-3 transition-all ease-in-out group-hover:gap-1">
+          <div className="bg-ion-drift flex-1 rounded-full" />
+          <div className="bg-core-flux flex-1 rounded-full" />
+          <div className="bg-pinky flex-1 rounded-full" />
+          <div className="bg-polar-sand flex-1 rounded-full" />
+          <div className="bg-pinky flex-1 rounded-full" />
+        </div>
+        <div className="flex gap-3 transition-all ease-in-out group-hover:gap-1">
+          <div className="bg-pinky flex-1 rounded-full" />
+          <div className="bg-polar-sand flex-1 rounded-full" />
+          <div className="flex-center text-polar-sand bg-core-flux w-max flex-col rounded-full px-12 py-5 text-center">
+            <p className="w-full text-5xl font-black">Repo Wrapped</p>
+          </div>
+          <div className="bg-ion-drift flex-1 rounded-full" />
+          <div className="bg-polar-sand flex-1 rounded-full" />
+        </div>
+        <div className="flex gap-3 transition-all ease-in-out group-hover:gap-1">
+          <div className="bg-core-flux flex-1 rounded-full" />
+          <div className="bg-ion-drift flex-1 rounded-full" />
+          <div className="bg-polar-sand flex-1 rounded-full" />
+          <div className="bg-core-flux flex-1 rounded-full" />
+          <div className="bg-pinky flex-1 rounded-full" />
+        </div>
       </div>
 
       <div className="mx-auto grid max-w-6xl grid-cols-2 px-4">

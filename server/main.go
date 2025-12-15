@@ -75,16 +75,23 @@ func analyzeRepo(c *fiber.Ctx) error {
 
 	totalAdded := 0
 	totalRemoved := 0
+	totalContributors := 0
+	contributors := make(map[string]bool)
 	for _, stat := range stats {
 		totalAdded += stat.Added
 		totalRemoved += stat.Removed
+		if _, ok := contributors[stat.Author]; !ok {
+			contributors[stat.Author] = true
+			totalContributors++
+		}
 	}
 
 	return c.JSON(fiber.Map{
-		"message":      "Analysis completed",
-		"totalAdded":   totalAdded,
-		"totalRemoved": totalRemoved,
-		"stats":        stats,
+		"message":           "Analysis completed",
+		"totalAdded":        totalAdded,
+		"totalRemoved":      totalRemoved,
+		"totalContributors": totalContributors,
+		"stats":             stats,
 	})
 }
 
