@@ -102,7 +102,7 @@ export default function Repo() {
             <div className="bg-pinky flex-1 rounded-full transition-all duration-1000 ease-in-out hover:flex-2 hover:duration-100" />
             <div className="bg-polar-sand flex-1 rounded-full transition-all duration-1000 ease-in-out hover:flex-2 hover:duration-100" />
             <div className="flex-center text-polar-sand bg-core-flux w-max flex-col rounded-full px-12 py-5 text-center transition-all duration-1000 ease-in-out hover:px-20 hover:duration-100">
-              <p className="w-full text-5xl font-black">Repo Wrapped</p>
+              <p className="w-full text-5xl font-black">Git Wrapped</p>
             </div>
             <div className="bg-ion-drift flex-1 rounded-full transition-all duration-1000 ease-in-out hover:flex-2 hover:duration-100" />
             <div className="bg-polar-sand flex-1 rounded-full transition-all duration-1000 ease-in-out hover:flex-2 hover:duration-100" />
@@ -267,12 +267,12 @@ function CraziestWeek({ stats }: CraziestWeekProps) {
           const colorClass = colorClasses[index % colorClasses.length]
           const heightClass =
             index === 0
-              ? 'h-24'
+              ? 'h-24 hover:h-28'
               : index === 1
-                ? 'h-20'
+                ? 'h-20 hover:h-24'
                 : index === 2
-                  ? 'h-16'
-                  : 'h-12'
+                  ? 'h-16 hover:h-20'
+                  : 'h-12 hover:h-16'
 
           return (
             <div
@@ -280,7 +280,7 @@ function CraziestWeek({ stats }: CraziestWeekProps) {
               className="grid grid-cols-[1fr_auto] items-center gap-x-7"
             >
               <div
-                className={`${colorClass} ${heightClass} flex items-center rounded-full px-5`}
+                className={`${colorClass} ${heightClass} flex items-center rounded-full px-5 transition-all duration-1000 ease-in-out hover:duration-150`}
                 style={{
                   minWidth: 'min-content',
                   width: `${Math.max(widthPercent, day.count > 0 ? 5 : 0)}%`,

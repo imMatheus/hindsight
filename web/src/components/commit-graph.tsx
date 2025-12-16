@@ -211,7 +211,6 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
               tickFormatter={(value) => value.toLocaleString()}
             />
             <ChartTooltip
-              active
               content={
                 <ChartTooltipContent
                   labelFormatter={(value, payload) => {
