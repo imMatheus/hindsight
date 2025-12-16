@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import NotFound from './NotFound'
 import { TopContributors } from '@/components/top-contributors'
+import { CommitWordCloud } from '@/components/commit-wordcloud'
 
 async function analyzeRepo(username: string, repo: string) {
   const response = await fetch('http://localhost:8080/api/analyze', {
@@ -77,15 +78,15 @@ export default function Repo() {
             <h3 className="text-xl font-medium tracking-tight">{username}</h3>
           </div>
 
-          <div className="flex gap-2">
-            <div className="flex-center text-pinky bg-core-flux flex-col rounded-full px-10 py-5 text-right">
+          <div className="text-obsidian-field flex gap-2">
+            <div className="flex-center bg-core-flux flex-col rounded-full px-10 py-5 text-right">
               <p className="w-full text-4xl font-black">
                 {data.stats.length.toLocaleString()}
               </p>
               <p className="font-semibold">Total commits</p>
             </div>
 
-            <div className="flex-center text-core-flux bg-pinky flex-col rounded-full px-10 py-5 text-right">
+            <div className="flex-center bg-pinky flex-col rounded-full px-10 py-5 text-right">
               <p className="w-full text-4xl font-black">
                 {data.totalContributors.toLocaleString()}
               </p>
@@ -132,6 +133,10 @@ export default function Repo() {
 
         <div className="mt-20">
           <TopContributors stats={data.stats} />
+        </div>
+
+        <div className="mt-20">
+          <CommitWordCloud stats={data.stats} />
         </div>
       </div>
     </div>
