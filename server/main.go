@@ -194,13 +194,17 @@ func cloneRepo(repoURL string) ([]CommitStats, map[string]int, error) {
 		"--pretty=format:COMMIT:%H|%an|%at|%s",
 	)
 	cmd.Dir = tmpDir
-	var gitLogStderr bytes.Buffer
-	cmd.Stderr = &gitLogStderr
+	// var gitLogStderr bytes.Buffer
+	// cmd.Stderr = &gitLogStderr
 	output, err := cmd.Output()
+	log.Printf("MATHEUS TEST [%s]", repoURL)
+
 	if err != nil {
-		log.Printf("Git log failed for %s: %v - stderr: %s", repoURL, err, gitLogStderr.String())
+		log.Printf("Git log failed for %s: %v ", repoURL, err)
+		// log.Printf("Git log failed for %s: %v - stderr: %s", repoURL, err, gitLogStderr.String())
 		return nil, nil, err
 	}
+	log.Printf("ADAM TEST [%s]", repoURL)
 	elapsed = time.Since(startTime)
 	log.Printf("Successfully ran git log for repository [%s] in %s", repoURL, elapsed)
 
