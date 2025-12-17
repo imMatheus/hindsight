@@ -270,43 +270,36 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
   ])
 
   return (
-    <>
-      <div className="text-obsidian-field mb-3 flex gap-2">
-        <div className="bg-core-flux rounded-full px-10 py-5 text-right">
-          <p className="w-full text-4xl font-black">
+    <div>
+      <div className="text-obsidian-field mb-3 flex flex-wrap gap-2">
+        <div className="bg-core-flux rounded-full px-6 py-3 text-right lg:px-10 lg:py-5">
+          <p className="w-full text-2xl font-black lg:text-4xl">
             {matheusData
               .reduce((sum, item) => sum + item.commitCount, 0)
               .toLocaleString()}
           </p>
-          <p className="font-semibold">Total commits</p>
+          <p className="font-semibold max-lg:text-sm">Total commits</p>
         </div>
 
-        <div className="bg-ion-drift rounded-full px-10 py-5 text-right">
-          <p className="w-full text-4xl font-black">
+        <div className="bg-ion-drift rounded-full px-6 py-3 text-right lg:px-10 lg:py-5">
+          <p className="w-full text-2xl font-black lg:text-4xl">
             {(totalAdded - totalRemoved).toLocaleString()}
           </p>
-          <p className="font-semibold">Total lines</p>
+          <p className="font-semibold max-lg:text-sm">Total lines</p>
         </div>
 
-        <div className="bg-alloy-ember rounded-full px-10 py-5 text-right">
-          <p className="w-full text-4xl font-black">
+        <div className="bg-alloy-ember rounded-full px-6 py-3 text-right lg:px-10 lg:py-5">
+          <p className="w-full text-2xl font-black lg:text-4xl">
             +{totalAdded.toLocaleString()}
           </p>
-          <p className="font-semibold">Total lines added</p>
+          <p className="font-semibold max-lg:text-sm">Total lines added</p>
         </div>
 
-        {/* <div className="bg-polar-sand rounded-full px-10 py-5 text-right">
-          <p className="w-full text-4xl font-black">
-            -{totalRemoved.toLocaleString()}
-          </p>
-          <p className="font-semibold">Total lines removed</p>
-        </div> */}
-
-        <div className="bg-pinky rounded-full px-10 py-5 text-right">
-          <p className="w-full text-4xl font-black">
+        <div className="bg-pinky rounded-full px-6 py-3 text-right lg:px-10 lg:py-5">
+          <p className="w-full text-2xl font-black lg:text-4xl">
             {totalContributors.toLocaleString()}
           </p>
-          <p className="font-semibold">Contributors</p>
+          <p className="font-semibold max-lg:text-sm">Contributors</p>
         </div>
       </div>
 
@@ -478,6 +471,6 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
           </div>
         </div>
       </ChartContainer>
-    </>
+    </div>
   )
 }

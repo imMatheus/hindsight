@@ -62,7 +62,7 @@ export default function Home() {
           </div>
         </header>
         <div className="flex-center flex-1 flex-col">
-          <div className="w-full">
+          <div className="mt-20 w-full">
             <h1 className="mb-8 text-center text-4xl font-bold">
               Enter GitHub Repository
             </h1>
@@ -75,7 +75,7 @@ export default function Home() {
                 value={repoUrl}
                 onChange={(e) => setRepoUrl(e.target.value)}
                 placeholder="username/repo or github.com/username/repo"
-                className="bg-core-flux w-full rounded-full p-8 text-2xl font-bold focus:border-transparent focus:outline-none"
+                className="bg-core-flux w-full rounded-full p-6 pr-14 text-xl font-bold focus:border-transparent focus:outline-none lg:p-8 lg:text-2xl"
                 autoFocus
               />
               <p className="absolute top-1/2 right-7 -translate-y-1/2 text-2xl font-bold transition-all duration-300 ease-in-out group-hover:translate-x-1">
@@ -88,7 +88,7 @@ export default function Home() {
                 Hottest repositories
               </p>
 
-              <div className="text-obsidian-field grid grid-cols-2 gap-3 text-xl font-bold">
+              <div className="text-obsidian-field grid gap-3 text-xl font-bold lg:grid-cols-2">
                 <Link
                   to={'/vercel/next.js'}
                   className="bg-pinky group flex items-center justify-between rounded-full p-6"
@@ -133,7 +133,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
+        <div className="relative left-1/2 w-fit max-w-screen -translate-x-1/2 overflow-x-hidden">
           <BottomUi />
         </div>
       </div>
@@ -158,37 +158,6 @@ const BottomUi = () => {
 
   return (
     <div className="space-y-1.5">
-      <div className="flex justify-center gap-1.5">
-        <Tab color="pink" />
-        <Tab color="amber" />
-        <Tab color="orange" />
-        <Tab color="pink" />
-        <Tab color="orange" />
-        <Tab color="blue" />
-        <Tab color="amber" />
-        <Tab color="pink" />
-        <Tab color="blue" />
-        <Tab color="amber" />
-        <Tab color="pink" />
-        <Tab color="orange" />
-        <Tab color="blue" />
-        <Tab color="pink" />
-      </div>
-      <div className="flex justify-center gap-1.5">
-        <Tab color="blue" />
-        <Tab color="orange" />
-        <Tab color="blue" />
-        <Tab color="amber" />
-        <Tab color="blue" />
-        <Tab color="amber" />
-        <Tab color="pink" />
-        <Tab color="blue" />
-        <Tab color="pink" />
-        <Tab color="orange" />
-        <Tab color="blue" />
-        <Tab color="orange" />
-        <Tab color="amber" />
-      </div>
       <div className="flex justify-center gap-1.5">
         <Tab color="orange" />
         <Tab color="blue" />
