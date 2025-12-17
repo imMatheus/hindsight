@@ -44,11 +44,12 @@ export default function Repo() {
   const { username, repo } = useParams<{ username: string; repo: string }>()
 
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['analyze', username, repo],
+    queryKey: ['repo', username, repo],
     queryFn: () => analyzeRepo(username!, repo!),
     enabled: !!username && !!repo,
     retry: 3,
     retryDelay: 400,
+    refetchOnMount: false,
   })
 
   if (isLoading) {
