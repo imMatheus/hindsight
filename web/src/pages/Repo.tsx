@@ -82,13 +82,6 @@ export default function Repo() {
           </div>
 
           <div className="text-obsidian-field flex gap-2">
-            <div className="flex-center bg-core-flux flex-col rounded-full px-10 py-5 text-right">
-              <p className="w-full text-4xl font-black">
-                {data.stats.length.toLocaleString()}
-              </p>
-              <p className="font-semibold">Total commits</p>
-            </div>
-
             <div className="flex-center bg-pinky flex-col rounded-full px-10 py-5 text-right">
               <p className="w-full text-4xl font-black">
                 {data.totalContributors.toLocaleString()}

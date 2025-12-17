@@ -33,15 +33,6 @@ interface CommitGraphProps {
   totalRemoved: number
 }
 
-function getWeekKey(date: Date, weeksInterval: number): string {
-  const startOfYear = new Date(date.getFullYear(), 0, 1)
-  const daysSinceStart = Math.floor(
-    (date.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24)
-  )
-  const weekNumber = Math.floor(daysSinceStart / (7 * weeksInterval))
-  return `${date.getFullYear()}-W${weekNumber * weeksInterval}`
-}
-
 function getMonthKey(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
 }
@@ -86,16 +77,75 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
 
   // Determine grouping strategy
   let groupBy: 'day' | 'week' | '2weeks' | 'month'
-  if (daysDiff <= 90) {
+  if (daysDiff <= 600) {
     groupBy = 'day'
-  } else if (daysDiff <= 365) {
+  } else if (daysDiff <= 900) {
     groupBy = 'week'
-  } else if (daysDiff <= 730) {
+  } else if (daysDiff <= 1400) {
     // } else if (daysDiff <= 730 || true) {
     groupBy = '2weeks'
   } else {
     groupBy = 'month'
   }
+
+  const fullHistoryData = useMemo(() => {
+    // Determine grouping strategy
+    let fullHistoryGroupBy: 'day' | 'week' | '2weeks' | 'month'
+    if (absoluteDaysDiff <= 600) {
+      fullHistoryGroupBy = 'day'
+    } else if (absoluteDaysDiff <= 900) {
+      fullHistoryGroupBy = 'week'
+    } else if (absoluteDaysDiff <= 1400) {
+      // } else if (daysDiff <= 730 || true) {
+      fullHistoryGroupBy = '2weeks'
+    } else {
+      fullHistoryGroupBy = 'month'
+    }
+
+    const fullHistoryMap = new Map<string, CommitStats[]>()
+
+    for (let i = stats.length - 1; i >= 0; i--) {
+      const stat = stats[i]!
+
+      const date = new Date(stat.date)
+      let key
+      switch (fullHistoryGroupBy) {
+        case 'day':
+        case 'week':
+        case '2weeks':
+          key = stat.date.split('T')[0]
+          break
+        // case 'week':
+        //   key = getWeekKey(date, 1)
+        //   break
+        // case '2weeks':
+        //   key = getWeekKey(date, 2)
+        //   break
+        case 'month':
+          key = getMonthKey(date)
+          break
+      }
+
+      if (!fullHistoryMap.has(key)) {
+        fullHistoryMap.set(key, [])
+      }
+      fullHistoryMap.get(key)!.push(stat)
+    }
+
+    const fullHistoryData: {
+      date: string
+      commitCount: number
+    }[] = []
+
+    for (const [key, commits] of fullHistoryMap.entries()) {
+      fullHistoryData.push({
+        date: key,
+        commitCount: commits.length,
+      })
+    }
+
+    return fullHistoryData
+  }, [absoluteDaysDiff])
 
   const matheusMap = new Map<string, CommitStats[]>()
 
@@ -135,10 +185,6 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
     added: number
     removed: number
   }[] = []
-  const data: {
-    date: string
-    commitCount: number
-  }[] = []
 
   let totalLines = 0
   for (let i = 0; i < matheusF.length; i++) {
@@ -152,10 +198,6 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
       removed += commit.removed
     }
 
-    data.push({
-      date: key,
-      commitCount: commits.length,
-    })
     if (
       dateRanges.maxDate >= new Date(key) &&
       dateRanges.minDate <= new Date(key)
@@ -279,7 +321,7 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
         config={chartConfig}
         className="aspect-auto h-[250px] w-full"
       >
-        <AreaChart accessibilityLayer data={matheusData}>
+        <AreaChart data={matheusData} margin={{ left: 10, right: 10 }}>
           <XAxis
             dataKey="date"
             tickLine={false}
@@ -321,29 +363,38 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
                   if (!payload || !payload[0]) return value
                   const data = payload[0].payload as {
                     date: string
-                    representativeDate: string
+
                     commitCount: number
                   }
+
+                  console.log({ data })
 
                   // Format the date based on groupBy
                   let formattedDate: string
                   if (groupBy === 'day') {
-                    const date = new Date(data.representativeDate)
-                    formattedDate = date.toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })
+                    formattedDate = hasMoreThan1Year
+                      ? format(new Date(data.date), 'MMM d, yy')
+                      : format(new Date(data.date), 'MMM d')
                   } else if (groupBy === 'week' || groupBy === '2weeks') {
-                    const parts = data.date.split('-W')
-                    formattedDate = `Week ${parts[1]}, ${parts[0]}`
+                    const date = new Date(data.date)
+                    const weekStart = new Date(date)
+                    const weekEnd = new Date(date)
+                    weekEnd.setDate(weekEnd.getDate() + 6)
+                    const startDay = format(weekStart, 'd')
+                    const endDay = format(weekEnd, 'd')
+                    const startMonth = format(weekStart, 'MMM')
+                    const endMonth = format(weekEnd, 'MMM')
+                    const year = format(weekEnd, 'yyyy')
+
+                    if (startMonth === endMonth) {
+                      formattedDate = `${startDay} - ${endDay} ${startMonth} ${year}`
+                    } else {
+                      formattedDate = `${startDay} ${startMonth} - ${endDay} ${endMonth} ${year}`
+                    }
                   } else {
                     const [year, month] = data.date.split('-')
                     const date = new Date(parseInt(year), parseInt(month) - 1)
-                    formattedDate = date.toLocaleDateString('en-US', {
-                      month: 'long',
-                      year: 'numeric',
-                    })
+                    formattedDate = format(date, 'MMM yyyy')
                   }
 
                   return (
@@ -359,7 +410,6 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
               />
             }
           />
-          {/* <ChartLegend content={<ChartLegendContent payload={[]} />} /> */}
           <Area
             dataKey="lines"
             type="linear"
@@ -374,7 +424,7 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
         config={chartConfig}
         className="relative mt-0 h-[45px] w-full"
       >
-        <LineChart data={data}>
+        <LineChart data={fullHistoryData}>
           <Line
             dataKey="commitCount"
             type="bumpX"
