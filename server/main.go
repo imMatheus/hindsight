@@ -190,7 +190,7 @@ func cloneRepo(repoURL string) ([]CommitStats, map[string]int, error) {
 	// Run git log with --numstat to get added/removed counts and file names
 	cmd := exec.Command("git", "log",
 		"--numstat",
-		"--diff-algorithm=histogram",
+		// "--diff-algorithm=histogram",
 		"--pretty=format:COMMIT:%H|%an|%at|%s",
 	)
 	cmd.Dir = tmpDir
