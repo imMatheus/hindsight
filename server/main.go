@@ -161,11 +161,15 @@ func cloneRepo(repoURL string) ([]CommitStats, map[string]int, error) {
 	}
 	defer os.RemoveAll(tmpDir)
 
+	startTime := time.Now()
 	cloneCmd := exec.Command("git", "clone", "--bare", "--single-branch", repoURL, tmpDir)
 	if err := cloneCmd.Run(); err != nil {
 		return nil, nil, err
 	}
+	elapsed := time.Since(startTime)
+	fmt.Printf("Successfully cloned repository in %s\n", elapsed)
 
+	startTime = time.Now()
 	// Run git log with --numstat to get added/removed counts and file names
 	cmd := exec.Command("git", "log",
 		"--numstat",
@@ -176,6 +180,8 @@ func cloneRepo(repoURL string) ([]CommitStats, map[string]int, error) {
 	if err != nil {
 		return nil, nil, err
 	}
+	elapsed = time.Since(startTime)
+	fmt.Printf("Successfully ran git log in %s\n", elapsed)
 
 	// Parse the output into CommitStats and accumulate file touches
 	var stats []CommitStats

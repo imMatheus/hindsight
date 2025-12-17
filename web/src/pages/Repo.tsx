@@ -116,7 +116,9 @@ export default function Repo() {
             <div className="bg-pinky flex-1 rounded-full transition-all duration-1000 ease-in-out hover:flex-2 hover:duration-100" />
             <div className="bg-polar-sand flex-1 rounded-full transition-all duration-1000 ease-in-out hover:flex-2 hover:duration-100" />
             <div className="flex-center text-polar-sand bg-core-flux w-max flex-col rounded-full px-12 py-5 text-center transition-all duration-1000 ease-in-out hover:px-20 hover:duration-100">
-              <p className="w-full text-5xl font-black">Git Wrapped</p>
+              <p className="text-obsidian-field w-full text-5xl font-black">
+                Git Wrapped
+              </p>
             </div>
             <div className="bg-ion-drift flex-1 rounded-full transition-all duration-1000 ease-in-out hover:flex-2 hover:duration-100" />
             <div className="bg-polar-sand flex-1 rounded-full transition-all duration-1000 ease-in-out hover:flex-2 hover:duration-100" />
