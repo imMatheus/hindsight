@@ -98,11 +98,7 @@ export default function Repo() {
           </div>
         </div>
 
-        <CommitGraph
-          commits={data.commits}
-          totalAdded={data.totalAdded}
-          totalRemoved={data.totalRemoved}
-        />
+        <CommitGraph commits={data.commits} />
 
         <div className="my-10 grid grid-rows-3 space-y-3">
           <div className="flex gap-3 transition-all ease-in-out">

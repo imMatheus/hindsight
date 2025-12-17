@@ -1,14 +1,4 @@
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Line,
-  LineChart,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import { Area, AreaChart, Line, LineChart, XAxis, YAxis } from 'recharts'
 import {
   ChartContainer,
   ChartTooltip,
@@ -29,19 +19,13 @@ const chartConfig = {
 
 interface CommitGraphProps {
   commits: CommitStats[]
-  totalAdded: number
-  totalRemoved: number
 }
 
 function getMonthKey(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
 }
 
-export const CommitGraph: React.FC<CommitGraphProps> = ({
-  commits,
-  totalAdded,
-  totalRemoved,
-}) => {
+export const CommitGraph: React.FC<CommitGraphProps> = ({ commits }) => {
   // Calculate date range
   const dates = useMemo(
     () => commits.map((commit) => new Date(commit.date)),
