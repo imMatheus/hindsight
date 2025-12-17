@@ -1,4 +1,4 @@
-module github.com/immatheus/hindsight
+module github.com/immatheus/gitback
 
 go 1.20
 

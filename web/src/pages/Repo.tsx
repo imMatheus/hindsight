@@ -37,6 +37,8 @@ async function analyzeRepo(username: string, repo: string) {
   }>
 }
 
+const THIS_YEAR = new Date('01-01-2025').getFullYear()
+
 export default function Repo() {
   const { username, repo } = useParams<{ username: string; repo: string }>()
 
@@ -66,6 +68,10 @@ export default function Repo() {
       </div>
     )
   }
+
+  const commitsThisYear = data.stats.filter(
+    (stat) => new Date(stat.date).getFullYear() === THIS_YEAR
+  )
 
   return (
     <div className="mx-auto min-h-screen max-w-6xl pt-4 pb-32">
@@ -126,13 +132,10 @@ export default function Repo() {
         </div>
 
         <div className="mt-52 space-y-52">
-          <CraziestWeek stats={data.stats} />
-          <TopContributors stats={data.stats} />
-
-          <FileCountDistribution commits={data.stats} />
-
-          <CommitWordCloud commits={data.stats} />
-
+          <CraziestWeek stats={commitsThisYear} />
+          <TopContributors commits={commitsThisYear} />
+          <FileCountDistribution commits={commitsThisYear} />
+          <CommitWordCloud commits={commitsThisYear} />
           <FileHeatmap mostTouchedFiles={data.mostTouchedFiles} />
         </div>
       </div>

@@ -17,28 +17,31 @@ import (
 
 func main() {
 	app := fiber.New(fiber.Config{
-		AppName: "Hindsight v1.0.0",
+		AppName: "GitBack v1.0.0",
 	})
 
-	// Middleware
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
 		AllowHeaders: "Origin, Content-Type, Accept",
 	}))
 
-	// Routes
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
-			"message": "Hindsight API",
+			"message": "GitBack API",
 			"version": "1.0.1",
 		})
 	})
 
 	app.Post("/api/analyze", analyzeRepo)
 
-	// Start server
-	log.Fatal(app.Listen(":8080"))
+	// Get port from environment (Cloud Run sets this)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Fatal(app.Listen(":" + port))
 }
 
 func analyzeRepo(c *fiber.Ctx) error {

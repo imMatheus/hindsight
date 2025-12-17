@@ -3,23 +3,19 @@ import type { CommitStats } from '@/types'
 import React from 'react'
 
 interface TopContributorsProps {
-  stats: CommitStats[]
+  commits: CommitStats[]
 }
 
-const thisYear = new Date('01-01-2025')
-
-export const TopContributors: React.FC<TopContributorsProps> = ({ stats }) => {
+export const TopContributors: React.FC<TopContributorsProps> = ({
+  commits,
+}) => {
   let totalCommitsThisYear = 0
   const contributors: Record<
     string,
     { name: string; commits: number; added: number; removed: number }
   > = {}
-  for (let i = 0; i < stats.length; i++) {
-    const stat = stats[i]!
-
-    if (new Date(stat.date) < thisYear) {
-      continue
-    }
+  for (let i = 0; i < commits.length; i++) {
+    const stat = commits[i]!
 
     totalCommitsThisYear++
 
