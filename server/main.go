@@ -177,7 +177,6 @@ func cloneRepo(repoURL string) ([]CommitStats, map[string]int, error) {
 	startTime := time.Now()
 	cloneCmd := exec.Command("git", "clone", "--bare", "--single-branch", repoURL, tmpDir)
 	// cloneCmd := exec.Command("git", "clone", "--bare", "--single-branch", "--filter=blob:none", repoURL, tmpDir)
-	cloneCmd.Env = append(os.Environ(), "GIT_PROTOCOL=version=2")
 	var cloneStderr bytes.Buffer
 	cloneCmd.Stderr = &cloneStderr
 	if err := cloneCmd.Run(); err != nil {
