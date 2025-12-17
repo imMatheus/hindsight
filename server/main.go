@@ -175,7 +175,8 @@ func cloneRepo(repoURL string) ([]CommitStats, map[string]int, error) {
 	defer os.RemoveAll(tmpDir)
 
 	startTime := time.Now()
-	cloneCmd := exec.Command("git", "clone", "--bare", "--single-branch", "--filter=blob:none", repoURL, tmpDir)
+	cloneCmd := exec.Command("git", "clone", "--bare", "--single-branch", repoURL, tmpDir)
+	// cloneCmd := exec.Command("git", "clone", "--bare", "--single-branch", "--filter=blob:none", repoURL, tmpDir)
 	cloneCmd.Env = append(os.Environ(), "GIT_PROTOCOL=version=2")
 	var cloneStderr bytes.Buffer
 	cloneCmd.Stderr = &cloneStderr
@@ -190,7 +191,7 @@ func cloneRepo(repoURL string) ([]CommitStats, map[string]int, error) {
 	// Run git log with --numstat to get added/removed counts and file names
 	cmd := exec.Command("git", "log",
 		"--numstat",
-		// "--diff-algorithm=histogram",
+		"--diff-algorithm=histogram",
 		"--pretty=format:COMMIT:%H|%an|%at|%s",
 	)
 	cmd.Dir = tmpDir
