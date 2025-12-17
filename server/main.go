@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -65,7 +66,7 @@ func analyzeRepo(c *fiber.Ctx) error {
 		})
 	}
 
-	stats, err := cloneRepo(fmt.Sprintf("https://github.com/%s/%s.git", req.Username, req.Repo))
+	stats, fileTouchCounts, err := cloneRepo(fmt.Sprintf("https://github.com/%s/%s.git", req.Username, req.Repo))
 	if err != nil {
 		fmt.Println(err)
 		// Check if it's a 404 error (repository not found)
@@ -92,12 +93,16 @@ func analyzeRepo(c *fiber.Ctx) error {
 		}
 	}
 
+	// Get top 100 most touched files
+	topFiles := getTopTouchedFiles(fileTouchCounts, 100)
+
 	return c.JSON(fiber.Map{
 		"message":           "Analysis completed",
 		"totalAdded":        totalAdded,
 		"totalRemoved":      totalRemoved,
 		"totalContributors": totalContributors,
 		"stats":             stats,
+		"mostTouchedFiles":  topFiles,
 	})
 }
 
@@ -110,27 +115,70 @@ type CommitStats struct {
 	Message string    `json:"message"`
 }
 
-func cloneRepo(repoURL string) ([]CommitStats, error) {
+type FileTouchCount struct {
+	File  string `json:"file"`
+	Count int    `json:"count"`
+}
+
+func getTopTouchedFiles(fileCounts map[string]int, limit int) []FileTouchCount {
+	type fileCountPair struct {
+		file  string
+		count int
+	}
+
+	// Convert map to slice
+	pairs := make([]fileCountPair, 0, len(fileCounts))
+	for file, count := range fileCounts {
+		pairs = append(pairs, fileCountPair{file: file, count: count})
+	}
+
+	// Sort by count descending
+	sort.Slice(pairs, func(i, j int) bool {
+		return pairs[i].count > pairs[j].count
+	})
+
+	// Take top N
+	if limit > len(pairs) {
+		limit = len(pairs)
+	}
+
+	result := make([]FileTouchCount, limit)
+	for i := 0; i < limit; i++ {
+		result[i] = FileTouchCount{
+			File:  pairs[i].file,
+			Count: pairs[i].count,
+		}
+	}
+
+	return result
+}
+
+func cloneRepo(repoURL string) ([]CommitStats, map[string]int, error) {
 	tmpDir, err := os.MkdirTemp("", "repo-analysis-")
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer os.RemoveAll(tmpDir)
 
 	cloneCmd := exec.Command("git", "clone", "--bare", "--single-branch", repoURL, tmpDir)
 	if err := cloneCmd.Run(); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	cmd := exec.Command("git", "log", "--numstat", "--pretty=format:%H|%an|%ad|%s", "--date=iso")
+	// Run git log with --numstat to get added/removed counts and file names
+	cmd := exec.Command("git", "log",
+		"--numstat",
+		"--pretty=format:COMMIT:%H|%an|%at|%s",
+	)
 	cmd.Dir = tmpDir
 	output, err := cmd.Output()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	// Parse the output into CommitStats
+	// Parse the output into CommitStats and accumulate file touches
 	var stats []CommitStats
+	fileTouchCounts := make(map[string]int)
 	lines := strings.Split(string(output), "\n")
 
 	var currentCommit *CommitStats
@@ -139,17 +187,24 @@ func cloneRepo(repoURL string) ([]CommitStats, error) {
 			continue
 		}
 
-		// Check if this is a commit header line (contains |)
-		if strings.Contains(line, "|") {
+		// Check if this is a commit header line (starts with COMMIT:)
+		if strings.HasPrefix(line, "COMMIT:") {
 			// Save previous commit if exists
 			if currentCommit != nil {
 				stats = append(stats, *currentCommit)
 			}
 
-			// Parse new commit header: hash|author|date|message
-			parts := strings.SplitN(line, "|", 4)
+			// Parse new commit header: COMMIT:hash|author|timestamp|message
+			commitLine := strings.TrimPrefix(line, "COMMIT:")
+			parts := strings.SplitN(commitLine, "|", 4)
 			if len(parts) == 4 {
-				date, _ := time.Parse("2006-01-02 15:04:05 -0700", parts[2])
+				// Parse Unix timestamp
+				timestamp, err := strconv.ParseInt(parts[2], 10, 64)
+				if err != nil {
+					// If timestamp parsing fails, use current time as fallback
+					timestamp = time.Now().Unix()
+				}
+				date := time.Unix(timestamp, 0)
 				currentCommit = &CommitStats{
 					Hash:    parts[0],
 					Author:  parts[1],
@@ -160,13 +215,38 @@ func cloneRepo(repoURL string) ([]CommitStats, error) {
 				}
 			}
 		} else if currentCommit != nil {
-			// Parse numstat line: added\tremoved\tfilename
-			fields := strings.Fields(line)
-			if len(fields) >= 2 {
-				added, _ := strconv.Atoi(fields[0])
-				removed, _ := strconv.Atoi(fields[1])
+			// Git uses tabs to separate fields: added\tremoved\tfilename
+			// Can be "-" for binary files or when no data available
+			tabFields := strings.Split(line, "\t")
+
+			if len(tabFields) >= 3 {
+				// This is a numstat line: added\tremoved\tfilename
+				addedStr := tabFields[0]
+				removedStr := tabFields[1]
+				fileName := tabFields[2]
+
+				// Parse added/removed counts (can be "-" for binary files)
+				added := 0
+				removed := 0
+				if addedStr != "-" {
+					if parsed, err := strconv.Atoi(addedStr); err == nil {
+						added = parsed
+					}
+				}
+				if removedStr != "-" {
+					if parsed, err := strconv.Atoi(removedStr); err == nil {
+						removed = parsed
+					}
+				}
+
+				// Add to commit totals
 				currentCommit.Added += added
 				currentCommit.Removed += removed
+
+				// Track file touches (count each file once per commit)
+				if fileName != "" {
+					fileTouchCounts[fileName]++
+				}
 			}
 		}
 	}
@@ -176,7 +256,7 @@ func cloneRepo(repoURL string) ([]CommitStats, error) {
 		stats = append(stats, *currentCommit)
 	}
 
-	return stats, nil
+	return stats, fileTouchCounts, nil
 }
 
 func isNotFoundError(err error) bool {
