@@ -29,7 +29,7 @@ func main() {
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"message": "GitBack API",
-			"version": "1.0.1",
+			"version": "1.0.0",
 		})
 	})
 
@@ -69,7 +69,7 @@ func analyzeRepo(c *fiber.Ctx) error {
 		})
 	}
 
-	stats, fileTouchCounts, err := cloneRepo(fmt.Sprintf("https://github.com/%s/%s.git", req.Username, req.Repo))
+	commits, fileTouchCounts, err := cloneRepo(fmt.Sprintf("https://github.com/%s/%s.git", req.Username, req.Repo))
 	if err != nil {
 		fmt.Println(err)
 		// Check if it's a 404 error (repository not found)
@@ -87,11 +87,11 @@ func analyzeRepo(c *fiber.Ctx) error {
 	totalRemoved := 0
 	totalContributors := 0
 	contributors := make(map[string]bool)
-	for _, stat := range stats {
-		totalAdded += stat.Added
-		totalRemoved += stat.Removed
-		if _, ok := contributors[stat.Author]; !ok {
-			contributors[stat.Author] = true
+	for _, commit := range commits {
+		totalAdded += commit.Added
+		totalRemoved += commit.Removed
+		if _, ok := contributors[commit.Author]; !ok {
+			contributors[commit.Author] = true
 			totalContributors++
 		}
 	}
@@ -104,7 +104,7 @@ func analyzeRepo(c *fiber.Ctx) error {
 		"totalAdded":        totalAdded,
 		"totalRemoved":      totalRemoved,
 		"totalContributors": totalContributors,
-		"stats":             stats,
+		"commits":           commits,
 		"mostTouchedFiles":  topFiles,
 	})
 }
@@ -170,7 +170,7 @@ func cloneRepo(repoURL string) ([]CommitStats, map[string]int, error) {
 		return nil, nil, err
 	}
 	elapsed := time.Since(startTime)
-	fmt.Printf("Successfully cloned repository in %s\n", elapsed)
+	fmt.Printf("Successfully cloned repository [%s] in %s\n", repoURL, elapsed)
 
 	startTime = time.Now()
 	// Run git log with --numstat to get added/removed counts and file names
@@ -184,10 +184,10 @@ func cloneRepo(repoURL string) ([]CommitStats, map[string]int, error) {
 		return nil, nil, err
 	}
 	elapsed = time.Since(startTime)
-	fmt.Printf("Successfully ran git log in %s\n", elapsed)
+	fmt.Printf("Successfully ran git log for repository [%s] in %s\n", repoURL, elapsed)
 
 	// Parse the output into CommitStats and accumulate file touches
-	var stats []CommitStats
+	var commits []CommitStats
 	fileTouchCounts := make(map[string]int)
 	lines := strings.Split(string(output), "\n")
 
@@ -201,7 +201,7 @@ func cloneRepo(repoURL string) ([]CommitStats, map[string]int, error) {
 		if strings.HasPrefix(line, "COMMIT:") {
 			// Save previous commit if exists
 			if currentCommit != nil {
-				stats = append(stats, *currentCommit)
+				commits = append(commits, *currentCommit)
 			}
 
 			// Parse new commit header: COMMIT:hash|author|timestamp|message
@@ -265,10 +265,10 @@ func cloneRepo(repoURL string) ([]CommitStats, map[string]int, error) {
 
 	// Don't forget the last commit
 	if currentCommit != nil {
-		stats = append(stats, *currentCommit)
+		commits = append(commits, *currentCommit)
 	}
 
-	return stats, fileTouchCounts, nil
+	return commits, fileTouchCounts, nil
 }
 
 func isNotFoundError(err error) bool {
