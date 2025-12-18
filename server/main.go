@@ -18,6 +18,7 @@ import (
 	"github.com/joho/godotenv"
 
 	database "github.com/immatheus/gitback/databases"
+	"github.com/immatheus/gitback/storage"
 )
 
 func main() {
@@ -35,6 +36,15 @@ func main() {
 		log.Printf("Database initialized successfully")
 	}
 	defer database.Close()
+
+	// Initialize GCP storage cache
+	if err := storage.Init(); err != nil {
+		log.Printf("WARNING: Storage cache initialization failed: %v", err)
+		log.Printf("Continuing without cache - requests will be slower")
+	} else {
+		log.Printf("GCP Storage cache initialized successfully")
+	}
+	defer storage.Close()
 
 	app := fiber.New(fiber.Config{
 		AppName: "GitBack v1.0.0",
@@ -146,6 +156,26 @@ func analyzeRepo(c *fiber.Ctx) error {
 	repoURL := fmt.Sprintf("https://github.com/%s/%s.git", req.Username, req.Repo)
 	log.Printf("=== Starting analysis for: %s ===", repoURL)
 
+	// Check cache first
+	cacheStart := time.Now()
+	if cachedData, err := storage.GetFromCache(req.Username, req.Repo); err != nil {
+		log.Printf("Cache check failed: %v", err)
+	} else if cachedData != nil {
+		log.Printf("[TIMING] Cache lookup: %v - CACHE HIT", time.Since(cacheStart))
+		log.Printf("Returning cached analysis for %s", repoURL)
+		
+		// Update view count in background
+		go func() {
+			if err := database.IncrementViews(req.Username, req.Repo); err != nil {
+				log.Printf("[DB] Failed to increment views for %s: %v", repoURL, err)
+			}
+		}()
+		
+		return c.JSON(cachedData)
+	} else {
+		log.Printf("[TIMING] Cache lookup: %v - CACHE MISS", time.Since(cacheStart))
+	}
+
 	logRequestSystemStats()
 
 	cloneStart := time.Now()
@@ -221,6 +251,16 @@ func analyzeRepo(c *fiber.Ctx) error {
 		"totalContributors": totalContributors,
 		"commits":           commits,
 	}
+
+	// Store in cache asynchronously
+	go func() {
+		cacheStoreStart := time.Now()
+		if err := storage.StoreInCache(req.Username, req.Repo, response); err != nil {
+			log.Printf("Failed to store analysis in cache for %s: %v", repoURL, err)
+		} else {
+			log.Printf("[TIMING] Cache store: %v for %s", time.Since(cacheStoreStart), repoURL)
+		}
+	}()
 
 	err = c.JSON(response)
 
