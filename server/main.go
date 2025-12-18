@@ -22,13 +22,11 @@ import (
 )
 
 func main() {
-	// Load connection string from .env file
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("failed to load env", err)
 	}
 
-	// Initialize database
 	if err := database.Init(os.Getenv("DATABASE_URL")); err != nil {
 		log.Printf("ERROR: Database initialization failed: %v", err)
 		log.Printf("Continuing without database - data will not be persisted")
@@ -37,7 +35,6 @@ func main() {
 	}
 	defer database.Close()
 
-	// Initialize GCP storage cache
 	if err := storage.Init(); err != nil {
 		log.Printf("WARNING: Storage cache initialization failed: %v", err)
 		log.Printf("Continuing without cache - requests will be slower")
@@ -163,14 +160,14 @@ func analyzeRepo(c *fiber.Ctx) error {
 	} else if cachedData != nil {
 		log.Printf("[TIMING] Cache lookup: %v - CACHE HIT", time.Since(cacheStart))
 		log.Printf("Returning cached analysis for %s", repoURL)
-		
+
 		// Update view count in background
 		go func() {
 			if err := database.IncrementViews(req.Username, req.Repo); err != nil {
 				log.Printf("[DB] Failed to increment views for %s: %v", repoURL, err)
 			}
 		}()
-		
+
 		return c.JSON(cachedData)
 	} else {
 		log.Printf("[TIMING] Cache lookup: %v - CACHE MISS", time.Since(cacheStart))
@@ -305,7 +302,6 @@ func logRequestSystemStats() {
 	}
 }
 
-// CommitStats type now defined in database package
 type CommitStats = database.CommitStats
 
 func cloneRepo(repoURL string) ([]CommitStats, error) {
