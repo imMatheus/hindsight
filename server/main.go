@@ -22,10 +22,7 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("failed to load env", err)
-	}
+	godotenv.Load() // only for dev, gcp injects this for us
 
 	if err := database.Init(os.Getenv("DATABASE_URL")); err != nil {
 		log.Printf("ERROR: Database initialization failed: %v", err)
