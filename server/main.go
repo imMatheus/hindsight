@@ -15,9 +15,27 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/joho/godotenv"
+
+	database "github.com/immatheus/gitback/databases"
 )
 
 func main() {
+	// Load connection string from .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("failed to load env", err)
+	}
+
+	// Initialize database
+	if err := database.Init(os.Getenv("DATABASE_URL")); err != nil {
+		log.Printf("ERROR: Database initialization failed: %v", err)
+		log.Printf("Continuing without database - data will not be persisted")
+	} else {
+		log.Printf("Database initialized successfully")
+	}
+	defer database.Close()
+
 	app := fiber.New(fiber.Config{
 		AppName: "GitBack v1.0.0",
 	})
@@ -36,6 +54,7 @@ func main() {
 	})
 
 	app.Post("/api/analyze", analyzeRepo)
+	app.Get("/top-repos", getTopRepos)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -165,6 +184,36 @@ func analyzeRepo(c *fiber.Ctx) error {
 	log.Printf("Analysis completed for %s: %d commits, %d contributors, +%d/-%d lines",
 		repoURL, len(commits), totalContributors, totalAdded, totalRemoved)
 
+	go func() {
+		histogram := database.CalculateLinesHistogram(commits, 10)
+
+		totalLines := 0
+		for _, commit := range commits {
+			totalLines += commit.Added - commit.Removed
+		}
+
+		dbData := database.RepoData{
+			Username:       req.Username,
+			RepoName:       req.Repo,
+			TotalAdditions: totalAdded,
+			TotalLines:     totalLines,
+			TotalRemovals:  totalRemoved,
+			LinesHistogram: histogram,
+		}
+
+		if err := database.SaveRepo(dbData); err != nil {
+			log.Printf("[DB] Failed to save repo to database for %s: %v", repoURL, err)
+		} else {
+			log.Printf("[DB] Successfully saved repo to database for %s", repoURL)
+		}
+
+		if err := database.IncrementViews(req.Username, req.Repo); err != nil {
+			log.Printf("[DB] Failed to increment views for %s: %v", repoURL, err)
+		} else {
+			log.Printf("[DB] Successfully incremented views for %s", repoURL)
+		}
+	}()
+
 	response := fiber.Map{
 		"message":           "Analysis completed",
 		"totalAdded":        totalAdded,
@@ -180,6 +229,21 @@ func analyzeRepo(c *fiber.Ctx) error {
 	log.Printf("=== Request completed ===\n")
 
 	return err
+}
+
+func getTopRepos(c *fiber.Ctx) error {
+	repos, err := database.GetTopRepos()
+	if err != nil {
+		log.Printf("Failed to get top repos: %v", err)
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Failed to fetch top repositories",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"repos": repos,
+		"count": len(repos),
+	})
 }
 
 func logRequestSystemStats() {
@@ -202,14 +266,8 @@ func logRequestSystemStats() {
 	}
 }
 
-type CommitStats struct {
-	Hash    string    `json:"hash"`
-	Author  string    `json:"author"`
-	Date    time.Time `json:"date"` // Unix timestamp for faster JSON marshaling
-	Added   int       `json:"added"`
-	Removed int       `json:"removed"`
-	Message string    `json:"message"`
-}
+// CommitStats type now defined in database package
+type CommitStats = database.CommitStats
 
 func cloneRepo(repoURL string) ([]CommitStats, error) {
 	overallStart := time.Now()

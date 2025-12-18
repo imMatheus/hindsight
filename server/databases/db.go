@@ -1,0 +1,258 @@
+package database
+
+import (
+	"database/sql"
+	"encoding/json"
+	"fmt"
+	"log"
+	"sort"
+	"time"
+
+	_ "github.com/lib/pq"
+)
+
+var db *sql.DB
+
+func Init(dsn string) error {
+	var err error
+	db, err = sql.Open("postgres", dsn)
+	if err != nil {
+		return fmt.Errorf("failed to open database: %w", err)
+	}
+
+	if err := db.Ping(); err != nil {
+		return fmt.Errorf("failed to ping database: %w", err)
+	}
+
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxLifetime(time.Hour)
+
+	log.Printf("Database connection established")
+
+	return nil
+}
+
+func Close() error {
+	if db != nil {
+		return db.Close()
+	}
+	return nil
+}
+
+type RepoData struct {
+	Username       string `json:"username"`
+	RepoName       string `json:"repoName"`
+	TotalAdditions int    `json:"totalAdditions"`
+	TotalLines     int    `json:"totalLines"`
+	TotalRemovals  int    `json:"totalRemovals"`
+	LinesHistogram []int  `json:"linesHistogram"` // 10 data points showing LOC over time
+}
+
+type CommitStats struct {
+	Hash    string    `json:"hash"`
+	Author  string    `json:"author"`
+	Date    time.Time `json:"date"`
+	Added   int       `json:"added"`
+	Removed int       `json:"removed"`
+	Message string    `json:"message"`
+}
+
+func SaveRepo(data RepoData) error {
+	if db == nil {
+		return fmt.Errorf("database not initialized")
+	}
+
+	histogramJSON, err := json.Marshal(data.LinesHistogram)
+	if err != nil {
+		return fmt.Errorf("failed to marshal histogram: %w", err)
+	}
+
+	// PostgreSQL upsert using ON CONFLICT
+	query := `
+		INSERT INTO repos (
+			username, 
+			repo_name, 
+			total_additions, 
+			total_lines, 
+			total_removals, 
+			views, 
+			lines_histogram,
+			updated_at
+		) VALUES ($1, $2, $3, $4, $5, 0, $6, NOW())
+		ON CONFLICT (username, repo_name) 
+		DO UPDATE SET
+			total_additions = EXCLUDED.total_additions,
+			total_lines = EXCLUDED.total_lines,
+			total_removals = EXCLUDED.total_removals,
+			lines_histogram = EXCLUDED.lines_histogram,
+			updated_at = NOW()
+	`
+
+	_, err = db.Exec(
+		query,
+		data.Username,
+		data.RepoName,
+		data.TotalAdditions,
+		data.TotalLines,
+		data.TotalRemovals,
+		string(histogramJSON),
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to save repo: %w", err)
+	}
+
+	log.Printf("Saved repo data for %s/%s to database", data.Username, data.RepoName)
+	return nil
+}
+
+func IncrementViews(username, repoName string) error {
+	if db == nil {
+		return fmt.Errorf("database not initialized")
+	}
+
+	query := `
+		UPDATE repos 
+		SET views = views + 1 
+		WHERE username = $1 AND repo_name = $2
+	`
+
+	result, err := db.Exec(query, username, repoName)
+	if err != nil {
+		return fmt.Errorf("failed to increment views: %w", err)
+	}
+
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		log.Printf("No repo found to increment views: %s/%s", username, repoName)
+	}
+
+	return nil
+}
+
+func GetRepo(username, repoName string) (*RepoData, error) {
+	if db == nil {
+		return nil, fmt.Errorf("database not initialized")
+	}
+
+	query := `
+		SELECT username, repo_name, total_additions, total_lines, total_removals, lines_histogram
+		FROM repos
+		WHERE username = $1 AND repo_name = $2
+	`
+
+	var data RepoData
+	var histogramJSON string
+
+	err := db.QueryRow(query, username, repoName).Scan(
+		&data.Username,
+		&data.RepoName,
+		&data.TotalAdditions,
+		&data.TotalLines,
+		&data.TotalRemovals,
+		&histogramJSON,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, nil // Not found
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get repo: %w", err)
+	}
+
+	// Parse histogram JSON
+	if err := json.Unmarshal([]byte(histogramJSON), &data.LinesHistogram); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal histogram: %w", err)
+	}
+
+	return &data, nil
+}
+
+func GetTopRepos() ([]RepoData, error) {
+	if db == nil {
+		return nil, fmt.Errorf("database not initialized")
+	}
+
+	query := `
+		SELECT username, repo_name, total_additions, total_lines, total_removals, lines_histogram
+		FROM repos
+		ORDER BY total_lines DESC
+	`
+
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query top repos: %w", err)
+	}
+	defer rows.Close()
+
+	var repos []RepoData
+	for rows.Next() {
+		var data RepoData
+		var histogramJSON string
+
+		err := rows.Scan(
+			&data.Username,
+			&data.RepoName,
+			&data.TotalAdditions,
+			&data.TotalLines,
+			&data.TotalRemovals,
+			&histogramJSON,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan repo row: %w", err)
+		}
+
+		// Parse histogram JSON
+		if err := json.Unmarshal([]byte(histogramJSON), &data.LinesHistogram); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal histogram: %w", err)
+		}
+
+		repos = append(repos, data)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating rows: %w", err)
+	}
+
+	return repos, nil
+}
+
+func CalculateLinesHistogram(commits []CommitStats, points int) []int {
+	if len(commits) == 0 {
+		return make([]int, points)
+	}
+
+	// Sort commits by date (oldest first)
+	sortedCommits := make([]CommitStats, len(commits))
+	copy(sortedCommits, commits)
+	sort.Slice(sortedCommits, func(i, j int) bool {
+		return sortedCommits[i].Date.Before(sortedCommits[j].Date)
+	})
+
+	histogram := make([]int, points)
+	commitsPerBucket := len(sortedCommits) / points
+	if commitsPerBucket == 0 {
+		commitsPerBucket = 1
+	}
+
+	totalLines := 0
+	bucketIndex := 0
+
+	for i, commit := range sortedCommits {
+		totalLines += commit.Added - commit.Removed
+
+		// Save snapshot at each bucket boundary
+		if (i+1)%commitsPerBucket == 0 && bucketIndex < points {
+			histogram[bucketIndex] = totalLines
+			bucketIndex++
+		}
+	}
+
+	// Fill remaining buckets with final total
+	for i := bucketIndex; i < points; i++ {
+		histogram[i] = totalLines
+	}
+
+	return histogram
+}
