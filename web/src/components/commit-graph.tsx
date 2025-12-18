@@ -34,20 +34,26 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
   totalAdded,
   totalRemoved,
 }) => {
-  // Calculate date range
-  const dates = useMemo(
-    () => commits.map((commit) => new Date(commit.date)),
-    [commits]
-  )
-  const _dateNumbers = useMemo(() => dates.map((d) => d.getTime()), [dates])
-  const absoluteMinDate = useMemo(
-    () => new Date(Math.min(..._dateNumbers)),
-    [_dateNumbers]
-  )
-  const absoluteMaxDate = useMemo(
-    () => new Date(Math.max(..._dateNumbers)),
-    [_dateNumbers]
-  )
+  const { absoluteMinDate, absoluteMaxDate } = useMemo(() => {
+    if (commits.length === 0) {
+      const now = new Date()
+      return { absoluteMinDate: now, absoluteMaxDate: now }
+    }
+
+    let minTime = Infinity
+    let maxTime = -Infinity
+
+    for (let i = 0; i < commits.length; i++) {
+      const time = new Date(commits[i].date).getTime()
+      if (time < minTime) minTime = time
+      if (time > maxTime) maxTime = time
+    }
+
+    return {
+      absoluteMinDate: new Date(minTime),
+      absoluteMaxDate: new Date(maxTime),
+    }
+  }, [commits])
 
   const absoluteDaysDiff = Math.floor(
     (absoluteMaxDate.getTime() - absoluteMinDate.getTime()) /
