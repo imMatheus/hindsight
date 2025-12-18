@@ -71,15 +71,25 @@ func logSystemInfo() {
 
 func testNetworkSpeed() {
 	start := time.Now()
-	cmd := exec.Command("curl", "-s", "-o", "/dev/null", "-w", "%{time_total}", "https://github.com")
-	output, err := cmd.Output()
+	cmd := exec.Command("wget", "-q", "-O", "/dev/null", "https://github.com")
+	err := cmd.Run()
 	elapsed := time.Since(start)
 
 	if err == nil {
-		log.Printf("GitHub ping: %s (total time: %v)", strings.TrimSpace(string(output)), elapsed)
+		log.Printf("GitHub ping: %v", elapsed)
 	} else {
 		log.Printf("GitHub ping failed: %v", err)
 	}
+
+	// cmd := exec.Command("curl", "-s", "-o", "/dev/null", "-w", "%{time_total}", "https://github.com")
+	// output, err := cmd.Output()
+	// elapsed := time.Since(start)
+
+	// if err == nil {
+	// 	log.Printf("GitHub ping: %s (total time: %v)", strings.TrimSpace(string(output)), elapsed)
+	// } else {
+	// 	log.Printf("GitHub ping failed: %v", err)
+	// }
 }
 
 func analyzeRepo(c *fiber.Ctx) error {
