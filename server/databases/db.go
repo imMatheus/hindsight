@@ -46,6 +46,7 @@ type RepoData struct {
 	TotalAdditions int    `json:"totalAdditions"`
 	TotalLines     int    `json:"totalLines"`
 	TotalRemovals  int    `json:"totalRemovals"`
+	Views          int    `json:"views"`
 	LinesHistogram []int  `json:"linesHistogram"` // 10 data points showing LOC over time
 }
 
@@ -175,7 +176,7 @@ func GetTopRepos() ([]RepoData, error) {
 	}
 
 	query := `
-		SELECT username, repo_name, total_additions, total_lines, total_removals, lines_histogram
+		SELECT username, repo_name, total_additions, total_lines, total_removals, views, lines_histogram
 		FROM repos
 		ORDER BY total_lines DESC
 	`
@@ -197,6 +198,7 @@ func GetTopRepos() ([]RepoData, error) {
 			&data.TotalAdditions,
 			&data.TotalLines,
 			&data.TotalRemovals,
+			&data.Views,
 			&histogramJSON,
 		)
 		if err != nil {

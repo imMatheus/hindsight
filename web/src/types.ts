@@ -19,5 +19,6 @@ export type Repository = {
   totalAdditions: number
   totalLines: number
   totalRemovals: number
+  views: number
   linesHistogram: number[]
 }

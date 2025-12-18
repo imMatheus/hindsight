@@ -1,6 +1,6 @@
 import React from 'react'
 
-export const LoadingAnimation: React.FC = ({}) => {
+export const LoadingAnimation: React.FC = ({ text }: { text?: string }) => {
   const animationDuration = 2100
   return (
     <>
@@ -35,9 +35,7 @@ export const LoadingAnimation: React.FC = ({}) => {
             style={{ animation: `loader-1 ${animationDuration}ms infinite` }}
           />
         </div>
-        <p className="pt-2 text-center text-sm font-medium">
-          cranking the numbers...
-        </p>
+        {text && <p className="pt-2 text-center text-sm font-medium">{text}</p>}
       </div>
     </>
   )

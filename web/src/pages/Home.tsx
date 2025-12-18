@@ -1,3 +1,5 @@
+import { LoadingAnimation } from '@/components/loading-animation'
+import { cn } from '@/lib/utils'
 import type { Repository } from '@/types'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -29,16 +31,6 @@ export default function Home() {
       }
     }
   }
-
-  const { data: topRepos } = useQuery<{ repos: Repository[] }>({
-    queryKey: ['topRepos'],
-    queryFn: () =>
-      fetch(`${import.meta.env.VITE_API_URL}/api/top-repos`).then((res) =>
-        res.json()
-      ),
-  })
-
-  console.log({ topRepos })
 
   return (
     <div className="flex h-full min-h-screen flex-col px-4">
@@ -143,12 +135,127 @@ export default function Home() {
               </div>
             </div>
           </div>
+          <div className="mt-20 w-full">
+            <Leaderboard />
+          </div>
         </div>
 
-        <div className="relative left-1/2 w-fit max-w-screen -translate-x-1/2 overflow-x-hidden">
+        <div className="relative left-1/2 mt-20 w-fit max-w-screen -translate-x-1/2 overflow-x-hidden">
           <BottomUi />
         </div>
       </div>
+    </div>
+  )
+}
+
+const Leaderboard = () => {
+  const {
+    data: topRepos,
+    isLoading,
+    isError,
+  } = useQuery<{ repos: Repository[] }>({
+    queryKey: ['topRepos'],
+    queryFn: () =>
+      fetch(`${import.meta.env.VITE_API_URL}/api/top-repos`).then((res) =>
+        res.json()
+      ),
+  })
+
+  if (isError) return null
+
+  if (isLoading)
+    return (
+      <div className="w-full overflow-x-auto">
+        <h3 className="mb-1 text-4xl font-black tracking-wide">Leaderboard</h3>
+        <p className="mb-5 text-lg leading-relaxed font-semibold">
+          The most biggest repositories by lines of code.
+        </p>
+
+        <div className="flex-center p-4">
+          <LoadingAnimation />
+        </div>
+      </div>
+    )
+
+  return (
+    <div className="w-full overflow-x-auto">
+      <h3 className="mb-1 text-4xl font-black tracking-wide">Leaderboard</h3>
+      <p className="mb-5 text-lg leading-relaxed font-semibold">
+        The most biggest repositories by lines of code.
+      </p>
+      <table className="w-full table-auto">
+        <thead>
+          <tr className="text-sm font-semibold">
+            <th className="pr-5 pb-2 text-right">Rank</th>
+            <th className="pr-4 pb-2 text-left">Repository</th>
+            <th className="pr-4 pb-2 text-left">Views</th>
+            <th className="pr-4 pb-2 text-left">Total Lines</th>
+            <th className="pr-4 pb-2 text-left"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {topRepos?.repos.map((repo, index) => {
+            const maxValue = Math.max(...repo.linesHistogram)
+
+            const bgColor = [
+              'bg-pinky',
+              'bg-ion-drift',
+              'bg-alloy-ember',
+              'bg-core-flux',
+              'bg-polar-sand',
+            ][index % 5]
+
+            return (
+              <tr
+                key={repo.username + repo.repoName}
+                className="text-xl font-semibold"
+              >
+                <td className="flex justify-end rounded-full p-1 pr-3 text-right">
+                  <div
+                    className={cn(
+                      'text-obsidian-field w-max rounded-full px-4 text-center font-black',
+                      bgColor
+                    )}
+                  >
+                    {index + 1}
+                  </div>
+                </td>
+                <td className="p-1 pr-4 text-left">
+                  <Link
+                    to={`/${repo.username}/${repo.repoName}`}
+                    className="truncate hover:underline"
+                  >
+                    {repo.username}/{repo.repoName}
+                  </Link>
+                </td>
+                <td className="p-1 pr-4 text-left font-black">
+                  {repo.views.toLocaleString()}
+                </td>
+                <td className="p-1 pr-4 text-left font-black">
+                  {repo.totalLines.toLocaleString()}
+                </td>
+                <td
+                  className="p-1 pr-4 text-left"
+                  title="Lines of code over time"
+                >
+                  <div className="flex h-4 items-end gap-0.5">
+                    {repo.linesHistogram.map((line, index) => (
+                      <div
+                        key={index}
+                        className={cn('w-1.5', bgColor)}
+                        style={{
+                          height: `${(line / maxValue) * 100}%`,
+                          minHeight: '1px',
+                        }}
+                      />
+                    ))}
+                  </div>
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
     </div>
   )
 }
