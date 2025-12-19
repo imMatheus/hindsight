@@ -2,6 +2,7 @@ import { LoadingAnimation } from '@/components/loading-animation'
 import { cn } from '@/lib/utils'
 import type { Repository } from '@/types'
 import { useQuery } from '@tanstack/react-query'
+import posthog from 'posthog-js'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 
@@ -21,12 +22,14 @@ export default function Home() {
       const [, username, repo] = match
       // Remove .git suffix if present
       const repoName = repo.replace(/\.git$/, '')
+      posthog.capture('repo_searched', { username, repo })
       navigate(`/${username}/${repoName}`)
     } else {
       // Try to parse as username/repo format
       const simpleMatch = repoUrl.match(/^([^/]+)\/([^/]+)$/)
       if (simpleMatch) {
         const [, username, repo] = simpleMatch
+        posthog.capture('repo_searched', { username, repo })
         navigate(`/${username}/${repo}`)
       }
     }
@@ -95,6 +98,12 @@ export default function Home() {
               <div className="text-obsidian-field grid gap-3 text-xl font-bold lg:grid-cols-2">
                 <Link
                   to={'/vercel/next.js'}
+                  onClick={() =>
+                    posthog.capture('repo_clicked', {
+                      username: 'vercel',
+                      repo: 'next.js',
+                    })
+                  }
                   className="bg-pinky group flex items-center justify-between rounded-full p-6"
                 >
                   <p className="truncate">vercel/next.js</p>
@@ -105,6 +114,12 @@ export default function Home() {
 
                 <Link
                   to={'/facebook/react'}
+                  onClick={() =>
+                    posthog.capture('repo_clicked', {
+                      username: 'facebook',
+                      repo: 'react',
+                    })
+                  }
                   className="bg-ion-drift group flex items-center justify-between rounded-full p-6"
                 >
                   <p className="truncate">facebook/react</p>
@@ -115,6 +130,12 @@ export default function Home() {
 
                 <Link
                   to={'/shadcn-ui/ui'}
+                  onClick={() =>
+                    posthog.capture('repo_clicked', {
+                      username: 'shadcn-ui',
+                      repo: 'ui',
+                    })
+                  }
                   className="bg-polar-sand group flex items-center justify-between rounded-full p-6"
                 >
                   <p className="truncate">shadcn-ui/ui</p>
@@ -125,6 +146,12 @@ export default function Home() {
 
                 <Link
                   to={'/imMatheus/portfolio'}
+                  onClick={() =>
+                    posthog.capture('repo_clicked', {
+                      username: 'imMatheus',
+                      repo: 'portfolio',
+                    })
+                  }
                   className="bg-alloy-ember group flex items-center justify-between rounded-full p-6"
                 >
                   <p className="truncate">imMatheus/portfolio</p>
@@ -234,6 +261,12 @@ const Leaderboard = () => {
                 <td className="p-1 pr-4 text-left">
                   <Link
                     to={`/${repo.username}/${repo.repoName}`}
+                    onClick={() =>
+                      posthog.capture('repo_clicked', {
+                        username: repo.username,
+                        repo: repo.repoName,
+                      })
+                    }
                     className="truncate hover:underline"
                   >
                     {repo.username}/{repo.repoName}
