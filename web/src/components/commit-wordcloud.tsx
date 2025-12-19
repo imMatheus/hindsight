@@ -27,7 +27,7 @@ export const CommitWordCloud: React.FC<CommitWordCloudProps> = ({
   }
 
   return (
-    <div className="my-20">
+    <div className="">
       <h3 className="mb-4 text-6xl font-black">Bänger commits!</h3>
       <p className="mb-8 text-xl font-semibold">
         coming up with commit messages is hard, you did not do great :){' '}

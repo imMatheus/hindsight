@@ -11,6 +11,7 @@ import { CommitWordCloud } from '@/components/commit-wordcloud'
 // import { FileHeatmap } from '@/components/file-heatmap'
 import { FileCountDistribution } from '@/components/file-count-distributionProps'
 import { CommitGrid } from '@/components/commit-grid'
+import { BiggestCommits } from '@/components/biggest-commits'
 
 async function analyzeRepo(username: string, repo: string) {
   const apiUrl = import.meta.env.VITE_API_URL
@@ -59,6 +60,10 @@ export default function Repo() {
         <LoadingAnimation />
       </div>
     )
+  }
+
+  if (!username || !repo) {
+    return <NotFound isRepo={true} />
   }
 
   if (isError || !data) {
@@ -174,7 +179,11 @@ export default function Repo() {
           <TopContributors commits={commitsThisYear} />
           <FileCountDistribution commits={commitsThisYear} />
           <CommitWordCloud commits={commitsThisYear} />
-
+          <BiggestCommits
+            commits={commitsThisYear}
+            repo={repo}
+            username={username}
+          />
           <CommitGrid commits={commitsThisYear} />
           {/* <FileHeatmap mostTouchedFiles={data.mostTouchedFiles} /> */}
         </div>

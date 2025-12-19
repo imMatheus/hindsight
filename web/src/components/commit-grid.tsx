@@ -52,7 +52,7 @@ export const CommitGrid: React.FC<CommitGridProps> = ({ commits }) => {
       ? []
       : Array.from({ length: Math.abs(firstDayOfTheWeek - 1) }, (_, i) => i + 1)
 
-  console.log({ daysArray, firstDate, firstDayOfTheWeek, offsetDays })
+  const colors = ['#2A1413', '#EE7759', '#BB4D34', '#8B3A29', '#5B271E']
 
   return (
     <div>
@@ -78,19 +78,19 @@ export const CommitGrid: React.FC<CommitGridProps> = ({ commits }) => {
             key={day}
             onMouseEnter={() => setHoverDay(day)}
             onMouseLeave={() => setHoverDay(null)}
-            className={cn(
-              'relative flex aspect-square flex-col items-center rounded-[1px] border-black/10 sm:rounded-sm sm:border',
-
-              count === 0
-                ? 'bg-[#2A1413]'
-                : count > maxCommitsInADay * 0.8
-                  ? 'bg-[#EE7759]'
-                  : count > maxCommitsInADay * 0.65
-                    ? 'bg-[#BB4D34]'
-                    : count > maxCommitsInADay * 0.4
-                      ? 'bg-[#8B3A29]'
-                      : 'bg-[#5B271E]'
-            )}
+            className="relative flex aspect-square flex-col items-center rounded-[1px] border-black/10 sm:rounded-sm sm:border"
+            style={{
+              background:
+                count === 0
+                  ? colors[0]
+                  : count > maxCommitsInADay * 0.8
+                    ? colors[1]
+                    : count > maxCommitsInADay * 0.65
+                      ? colors[2]
+                      : count > maxCommitsInADay * 0.4
+                        ? colors[3]
+                        : colors[4],
+            }}
           >
             {hoverDay === day && (
               <div className="bg-polar-sand text-obsidian-field absolute -top-1 left-1/2 z-1 w-max shrink-0 -translate-x-1/2 -translate-y-full rounded-lg px-3 py-1 text-sm font-bold">
@@ -103,11 +103,26 @@ export const CommitGrid: React.FC<CommitGridProps> = ({ commits }) => {
       </div>
       <div className="mt-3 flex items-center justify-end gap-1">
         <p className="mr-1 text-xs font-semibold">Less</p>
-        <div className="size-4 rounded-sm border border-black/10 bg-[#2A1413]"></div>
-        <div className="size-4 rounded-sm border border-black/10 bg-[#5B271E]"></div>
-        <div className="size-4 rounded-sm border border-black/10 bg-[#8B3A29]"></div>
-        <div className="size-4 rounded-sm border border-black/10 bg-[#BB4D34]"></div>
-        <div className="size-4 rounded-sm border border-black/10 bg-[#EE7759]"></div>
+        <div
+          className="size-4 rounded-sm border border-black/10"
+          style={{ backgroundColor: colors[0] }}
+        ></div>
+        <div
+          className="size-4 rounded-sm border border-black/10"
+          style={{ backgroundColor: colors[1] }}
+        ></div>
+        <div
+          className="size-4 rounded-sm border border-black/10"
+          style={{ backgroundColor: colors[2] }}
+        ></div>
+        <div
+          className="size-4 rounded-sm border border-black/10"
+          style={{ backgroundColor: colors[3] }}
+        ></div>
+        <div
+          className="size-4 rounded-sm border border-black/10"
+          style={{ backgroundColor: colors[4] }}
+        ></div>
         <p className="ml-1 text-xs font-semibold">More</p>
       </div>
     </div>
