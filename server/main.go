@@ -161,24 +161,24 @@ func analyzeRepo(c *fiber.Ctx) error {
 	log.Printf("=== Starting analysis for: %s ===", repoURL)
 
 	// Check cache first
-	// cacheStart := time.Now()
-	// if cachedData, err := storage.GetFromCache(req.Username, req.Repo); err != nil {
-	// 	log.Printf("Cache check failed: %v", err)
-	// } else if cachedData != nil {
-	// 	log.Printf("[TIMING] Cache lookup: %v - CACHE HIT", time.Since(cacheStart))
-	// 	log.Printf("Returning cached analysis for %s", repoURL)
+	cacheStart := time.Now()
+	if cachedData, err := storage.GetFromCache(req.Username, req.Repo); err != nil {
+		log.Printf("Cache check failed: %v", err)
+	} else if cachedData != nil {
+		log.Printf("[TIMING] Cache lookup: %v - CACHE HIT", time.Since(cacheStart))
+		log.Printf("Returning cached analysis for %s", repoURL)
 
-	// 	// Update view count in background
-	// 	go func() {
-	// 		if err := database.IncrementViews(req.Username, req.Repo); err != nil {
-	// 			log.Printf("[DB] Failed to increment views for %s: %v", repoURL, err)
-	// 		}
-	// 	}()
+		// Update view count in background
+		go func() {
+			if err := database.IncrementViews(req.Username, req.Repo); err != nil {
+				log.Printf("[DB] Failed to increment views for %s: %v", repoURL, err)
+			}
+		}()
 
-	// 	return c.JSON(cachedData)
-	// } else {
-	// 	log.Printf("[TIMING] Cache lookup: %v - CACHE MISS", time.Since(cacheStart))
-	// }
+		return c.JSON(cachedData)
+	} else {
+		log.Printf("[TIMING] Cache lookup: %v - CACHE MISS", time.Since(cacheStart))
+	}
 
 	logRequestSystemStats()
 
@@ -430,9 +430,6 @@ func cloneRepo(repoURL string) ([]CommitStats, error) {
 	log.Printf("[TIMING] *** Git log completed: %v ***", gitLogDuration)
 	log.Printf("[DEBUG] Git log output size: %d bytes (%.2f MB)", len(output), float64(len(output))/1024/1024)
 
-	parseStart := time.Now()
-	log.Printf("[DEBUG] Starting to parse git log output...")
-
 	// Estimate capacity for better memory allocation
 	estimatedCommits := len(output) / 200
 	commits := make([]CommitStats, 0, estimatedCommits)
@@ -464,10 +461,10 @@ func cloneRepo(repoURL string) ([]CommitStats, error) {
 				}
 				date := time.Unix(timestamp, 0)
 				currentCommit = &CommitStats{
-					Hash:    parts[0],
+					Hash:    parts[0][:7],
 					Author:  parts[1],
-					Date:    date,
-					Message: parts[3],
+					Date:    date.Unix(),
+					Message: truncateMessage(parts[3], 100),
 					Added:   0,
 					Removed: 0,
 				}
@@ -490,17 +487,21 @@ func cloneRepo(repoURL string) ([]CommitStats, error) {
 		commits = append(commits, *currentCommit)
 	}
 
-	parseDuration := time.Since(parseStart)
-
 	log.Printf("[TIMING] === CLONE REPO BREAKDOWN OF %s ===", repoURL)
 	log.Printf("[TIMING] - Temp dir creation: included in overall")
 	log.Printf("[TIMING] - Git clone: %v (%.1f%%)", cloneDuration, float64(cloneDuration)/float64(time.Since(overallStart))*100)
 	log.Printf("[TIMING] - Git log: %v (%.1f%%)", gitLogDuration, float64(gitLogDuration)/float64(time.Since(overallStart))*100)
-	log.Printf("[TIMING] - Parsing: %v (%.1f%%)", parseDuration, float64(parseDuration)/float64(time.Since(overallStart))*100)
 	log.Printf("[TIMING] - Total cloneRepo: %v", time.Since(overallStart))
 	log.Printf("[TIMING] ================================")
 
 	return commits, nil
+}
+
+func truncateMessage(msg string, maxLen int) string {
+	if len(msg) <= maxLen {
+		return msg
+	}
+	return msg[:maxLen] + "..."
 }
 
 func isNotFoundError(err error) bool {

@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { CommitGraph } from '../components/commit-graph'
-import type { CommitStats, GitHubRepo } from '@/types'
+import type { CommitStats, CommitStatsAPI, GitHubRepo } from '@/types'
 import { LoadingAnimation } from '@/components/loading-animation'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
@@ -29,14 +29,33 @@ async function analyzeRepo(username: string, repo: string) {
     throw new Error('Failed to analyze repository')
   }
 
-  return response.json() as Promise<{
+  const data = (await response.json()) as {
     totalAdded: number
     totalRemoved: number
     totalContributors: number
     totalCommits: number
-    commits: CommitStats[]
+    commits: CommitStatsAPI[]
     github?: GitHubRepo
-  }>
+  }
+
+  return {
+    totalAdded: data.totalAdded,
+    totalRemoved: data.totalRemoved,
+    totalContributors: data.totalContributors,
+    totalCommits: data.totalCommits,
+    commits: data.commits.map(
+      (commit) =>
+        ({
+          hash: commit.h,
+          author: commit.a,
+          date: new Date(commit.d * 1000).toISOString(),
+          added: commit['+'] ?? 0,
+          removed: commit['-'] ?? 0,
+          message: commit.m,
+        }) as CommitStats
+    ),
+    github: data.github,
+  }
 }
 
 const THIS_YEAR = new Date('01-01-2025').getFullYear()

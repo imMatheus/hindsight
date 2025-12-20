@@ -55,12 +55,12 @@ type RepoData struct {
 }
 
 type CommitStats struct {
-	Hash    string    `json:"hash"`
-	Author  string    `json:"author"`
-	Date    time.Time `json:"date"`
-	Added   int       `json:"added"`
-	Removed int       `json:"removed"`
-	Message string    `json:"message"`
+	Hash    string `json:"h"`
+	Author  string `json:"a"`
+	Date    int64  `json:"d"`
+	Added   int    `json:"+,omitempty"`
+	Removed int    `json:"-,omitempty"`
+	Message string `json:"m,omitempty"`
 }
 
 func SaveRepo(data RepoData) error {
@@ -248,7 +248,7 @@ func CalculateLinesHistogram(commits []CommitStats, points int) []int {
 	sortedCommits := make([]CommitStats, len(commits))
 	copy(sortedCommits, commits)
 	sort.Slice(sortedCommits, func(i, j int) bool {
-		return sortedCommits[i].Date.Before(sortedCommits[j].Date)
+		return sortedCommits[i].Date < sortedCommits[j].Date
 	})
 
 	histogram := make([]int, points)
