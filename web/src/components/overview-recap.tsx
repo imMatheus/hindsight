@@ -79,7 +79,7 @@ export const OverviewRecap: React.FC<OverviewRecapProps> = ({
 
   console.log({ maxValue, linesHistogram })
 
-  const { daysArray, maxCommitsInADay, longestStreak } = useMemo(() => {
+  const { daysArray } = useMemo(() => {
     const dayToCommitMap = getAllDaysInYear(2025)
 
     let maxCommitsInADay = 0
@@ -95,24 +95,8 @@ export const OverviewRecap: React.FC<OverviewRecapProps> = ({
       return new Date(a[0]).getTime() - new Date(b[0]).getTime()
     })
 
-    let longestStreak = 0
-    let currentStreak = 0
-    for (const [_, count] of daysArray) {
-      if (count > 0) {
-        currentStreak++
-        if (currentStreak > longestStreak) {
-          longestStreak = currentStreak
-        }
-      } else {
-        currentStreak = 0
-      }
-    }
-
-    return { daysArray, maxCommitsInADay, longestStreak }
+    return { daysArray }
   }, [commits])
-
-  const firstDate = new Date(daysArray[0][0])
-  const firstDayOfTheWeek = firstDate.getDay()
 
   return (
     <div

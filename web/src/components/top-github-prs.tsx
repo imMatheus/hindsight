@@ -7,14 +7,6 @@ interface TopGitHubPRsProps {
 }
 
 export const TopGitHubPRs: React.FC<TopGitHubPRsProps> = ({ prs }) => {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
-  }
-
   if (prs.length === 0) {
     return null
   }
