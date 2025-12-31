@@ -23,7 +23,6 @@ const getAllDaysInYear = (year: number) => {
 const colors = ['#2A1413', '#EE7759', '#BB4D34', '#8B3A29', '#5B271E']
 
 export const CommitGrid: React.FC<CommitGridProps> = ({ commits }) => {
-  console.log({ commits })
   const [hoverDay, setHoverDay] = useState<string | null>(null)
   const { daysArray, maxCommitsInADay, longestStreak } = useMemo(() => {
     const dayToCommitMap = getAllDaysInYear(2025)

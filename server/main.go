@@ -102,6 +102,9 @@ func logSystemInfo() {
 	log.Printf("===================")
 }
 
+// for dev only
+const skipCache = false
+
 func testNetworkSpeed() {
 	start := time.Now()
 	cmd := exec.Command("wget", "-q", "-O", "/dev/null", "https://github.com")
@@ -161,23 +164,25 @@ func analyzeRepo(c *fiber.Ctx) error {
 	log.Printf("=== Starting analysis for: %s ===", repoURL)
 
 	// Check cache first
-	cacheStart := time.Now()
-	if cachedData, err := storage.GetFromCache(req.Username, req.Repo); err != nil {
-		log.Printf("Cache check failed: %v", err)
-	} else if cachedData != nil {
-		log.Printf("[TIMING] Cache lookup: %v - CACHE HIT", time.Since(cacheStart))
-		log.Printf("Returning cached analysis for %s", repoURL)
+	if !skipCache {
+		cacheStart := time.Now()
+		if cachedData, err := storage.GetFromCache(req.Username, req.Repo); err != nil {
+			log.Printf("Cache check failed: %v", err)
+		} else if cachedData != nil {
+			log.Printf("[TIMING] Cache lookup: %v - CACHE HIT", time.Since(cacheStart))
+			log.Printf("Returning cached analysis for %s", repoURL)
 
-		// Update view count in background
-		go func() {
-			if err := database.IncrementViews(req.Username, req.Repo); err != nil {
-				log.Printf("[DB] Failed to increment views for %s: %v", repoURL, err)
-			}
-		}()
+			// Update view count in background
+			go func() {
+				if err := database.IncrementViews(req.Username, req.Repo); err != nil {
+					log.Printf("[DB] Failed to increment views for %s: %v", repoURL, err)
+				}
+			}()
 
-		return c.JSON(cachedData)
-	} else {
-		log.Printf("[TIMING] Cache lookup: %v - CACHE MISS", time.Since(cacheStart))
+			return c.JSON(cachedData)
+		} else {
+			log.Printf("[TIMING] Cache lookup: %v - CACHE MISS", time.Since(cacheStart))
+		}
 	}
 
 	logRequestSystemStats()
@@ -223,12 +228,22 @@ func analyzeRepo(c *fiber.Ctx) error {
 
 	// Use goroutines to fetch GitHub data in parallel
 	var wg sync.WaitGroup
-	wg.Add(1)
+	wg.Add(2)
 
 	go func() {
 		defer wg.Done()
 		if repoInfo, err := fetchGitHubRepoInfo(req.Username, req.Repo); err == nil {
 			githubInfo = repoInfo
+		}
+	}()
+
+	var pullRequests *GitHubSearchResult
+	go func() {
+		defer wg.Done()
+		if pullRequestInfo, err := fetchRepoTopPullRequests(req.Username, req.Repo); err == nil {
+			pullRequests = pullRequestInfo
+		} else {
+			log.Printf("Failed to fetch top pull requests for %s/%s: %v", req.Username, req.Repo, err)
 		}
 	}()
 
@@ -275,6 +290,7 @@ func analyzeRepo(c *fiber.Ctx) error {
 		"totalCommits":      len(commits),
 		"commits":           commits,
 		"github":            githubInfo,
+		"pullRequests":      pullRequests,
 	}
 
 	// Store in cache asynchronously
@@ -336,6 +352,42 @@ type GitHubRepo struct {
 	StargazersCount int    `json:"stargazers_count"`
 	Language        string `json:"language"`
 	Size            int    `json:"size"`
+}
+
+type GitHubPullRequest struct {
+	ID          int64                  `json:"id"`
+	Number      int                    `json:"number"`
+	Title       string                 `json:"title"`
+	Body        string                 `json:"body"`
+	User        GitHubUser             `json:"user"`
+	CreatedAt   string                 `json:"created_at"`
+	State       string                 `json:"state"`
+	HTMLURL     string                 `json:"html_url"`
+	Comments    int                    `json:"comments"`
+	PullRequest *GitHubPullRequestInfo `json:"pull_request,omitempty"`
+	Reactions   GitHubReactions        `json:"reactions"`
+}
+
+type GitHubPullRequestInfo struct {
+	MergedAt *string `json:"merged_at"`
+}
+
+type GitHubReactions struct {
+	TotalCount int `json:"total_count"`
+	PlusOne    int `json:"+1"`
+	MinusOne   int `json:"-1"`
+	Laugh      int `json:"laugh"`
+	Hooray     int `json:"hooray"`
+	Confused   int `json:"confused"`
+	Heart      int `json:"heart"`
+	Rocket     int `json:"rocket"`
+	Eyes       int `json:"eyes"`
+}
+
+type GitHubUser struct {
+	Login     string `json:"login"`
+	AvatarURL string `json:"avatar_url"`
+	HTMLURL   string `json:"html_url"`
 }
 
 var githubClient = &http.Client{
@@ -502,6 +554,43 @@ func truncateMessage(msg string, maxLen int) string {
 		return msg
 	}
 	return msg[:maxLen] + "..."
+}
+
+type GitHubSearchResult struct {
+	TotalCount int                 `json:"total_count"`
+	Items      []GitHubPullRequest `json:"items"`
+}
+
+func fetchRepoTopPullRequests(username, repo string) (*GitHubSearchResult, error) {
+	const prCount = 5
+	searchURL := fmt.Sprintf("https://api.github.com/search/issues?q=repo:%s/%s+type:pr+created:2025-01-01..2025-12-31&sort=reactions&order=desc&per_page=%d", username, repo, prCount)
+	req, err := http.NewRequest("GET", searchURL, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if token := os.Getenv("GITHUB_TOKEN"); token != "" {
+		req.Header.Set("Authorization", "token "+token)
+	}
+	req.Header.Set("Accept", "application/vnd.github.v3+json")
+
+	resp, err := githubClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
+	}
+
+	var searchResult GitHubSearchResult
+	if err := json.NewDecoder(resp.Body).Decode(&searchResult); err != nil {
+		return nil, err
+	}
+
+	log.Printf("[DEBUG] Returning %d pull requests", len(searchResult.Items))
+	return &searchResult, nil
 }
 
 func isNotFoundError(err error) bool {

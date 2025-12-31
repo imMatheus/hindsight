@@ -9,15 +9,12 @@ interface TopContributorsProps {
 export const TopContributors: React.FC<TopContributorsProps> = ({
   commits,
 }) => {
-  let totalCommitsThisYear = 0
   const contributors: Record<
     string,
     { name: string; commits: number; added: number; removed: number }
   > = {}
   for (let i = 0; i < commits.length; i++) {
     const stat = commits[i]!
-
-    totalCommitsThisYear++
 
     if (contributors[stat.author]) {
       contributors[stat.author].commits += 1
@@ -60,7 +57,7 @@ export const TopContributors: React.FC<TopContributorsProps> = ({
         </span>{' '}
         commits out of{' '}
         <span className="bg-ion-drift text-obsidian-field rounded-full px-2.5 py-0.5 font-bold">
-          {totalCommitsThisYear.toLocaleString()}
+          {commits.length.toLocaleString()}
         </span>{' '}
         this year. Adding{' '}
         <span className="bg-alloy-ember text-obsidian-field rounded-full px-2.5 py-0.5 font-bold">

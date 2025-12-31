@@ -1,7 +1,12 @@
 import { Link, useParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { CommitGraph } from '../components/commit-graph'
-import type { CommitStats, CommitStatsAPI, GitHubRepo } from '@/types'
+import type {
+  CommitStats,
+  CommitStatsAPI,
+  GitHubPullRequest,
+  GitHubRepo,
+} from '@/types'
 import { LoadingAnimation } from '@/components/loading-animation'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
@@ -11,6 +16,8 @@ import { CommitWordCloud } from '@/components/commit-wordcloud'
 import { FileCountDistribution } from '@/components/file-count-distributionProps'
 import { CommitGrid } from '@/components/commit-grid'
 import { BiggestCommits } from '@/components/biggest-commits'
+import { TopGitHubPRs } from '@/components/top-github-prs'
+import { OverviewRecap } from '@/components/overview-recap'
 
 async function analyzeRepo(username: string, repo: string) {
   const apiUrl = import.meta.env.VITE_API_URL
@@ -36,6 +43,7 @@ async function analyzeRepo(username: string, repo: string) {
     totalCommits: number
     commits: CommitStatsAPI[]
     github?: GitHubRepo
+    pullRequests?: { total_count: number; items: GitHubPullRequest[] }
   }
 
   return {
@@ -55,10 +63,11 @@ async function analyzeRepo(username: string, repo: string) {
         }) as CommitStats
     ),
     github: data.github,
+    pullRequests: data.pullRequests || null,
   }
 }
 
-const THIS_YEAR = new Date('01-01-2025').getFullYear()
+const THIS_YEAR = 2025
 
 export default function Repo() {
   const { username, repo } = useParams<{ username: string; repo: string }>()
@@ -157,12 +166,14 @@ export default function Repo() {
           </a>
         </div>
 
-        <CommitGraph
-          commits={data.commits}
-          totalContributors={data.totalContributors}
-          totalAdded={data.totalAdded}
-          totalRemoved={data.totalRemoved}
-        />
+        <div className="my-10">
+          <CommitGraph
+            commits={data.commits}
+            totalContributors={data.totalContributors}
+            totalAdded={data.totalAdded}
+            totalRemoved={data.totalRemoved}
+          />
+        </div>
 
         <div className="my-10 grid grid-rows-3 space-y-3">
           <div className="flex gap-3 transition-all ease-in-out">
@@ -192,6 +203,10 @@ export default function Repo() {
           </div>
         </div>
 
+        {data.pullRequests && data.pullRequests.items.length > 0 && (
+          <TopGitHubPRs prs={data.pullRequests.items} />
+        )}
+
         {commitsThisYear.length > 0 ? (
           <div className="mt-52 space-y-52">
             <CraziestWeek stats={commitsThisYear} />
@@ -204,6 +219,14 @@ export default function Repo() {
               username={username}
             />
             <CommitGrid commits={commitsThisYear} />
+            {data.pullRequests && data.pullRequests.items.length > 0 && (
+              <TopGitHubPRs prs={data.pullRequests.items} />
+            )}
+
+            <OverviewRecap
+              commits={commitsThisYear}
+              pullRequests={data.pullRequests}
+            />
             {/* <FileHeatmap mostTouchedFiles={data.mostTouchedFiles} /> */}
           </div>
         ) : (

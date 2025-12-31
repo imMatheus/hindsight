@@ -54,6 +54,7 @@ type RepoData struct {
 	Size           int    `json:"size"`
 }
 
+// we do this weird json names to minify the payload size, its small but it matters at scale
 type CommitStats struct {
 	Hash    string `json:"h"`
 	Author  string `json:"a"`

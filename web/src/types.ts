@@ -38,3 +38,39 @@ export type GitHubRepo = {
   language: string
   size: number
 }
+
+export type GitHubPullRequest = {
+  id: number
+  number: number
+  title: string
+  body: string
+  user: GitHubUser
+  created_at: string
+  state: string
+  html_url: string
+  comments: number
+  pull_request?: GitHubPullRequestInfo
+  reactions: GitHubReactions
+}
+
+export type GitHubPullRequestInfo = {
+  merged_at?: string
+}
+
+export type GitHubReactions = {
+  total_count: number
+  '+1': number
+  '-1': number
+  laugh: number
+  hooray: number
+  confused: number
+  heart: number
+  rocket: number
+  eyes: number
+}
+
+export type GitHubUser = {
+  login: string
+  avatar_url: string
+  html_url: string
+}

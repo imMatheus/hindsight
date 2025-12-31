@@ -22,3 +22,4 @@
 
 - Always use bun for TypeScript operations in the `/web` directory
 - The server uses Go modules for dependency management
+- **NEVER** build or compile the Go backend files - the Go server is managed separately
