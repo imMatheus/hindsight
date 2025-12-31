@@ -1,10 +1,10 @@
 import React, { useLayoutEffect, useMemo, useState } from 'react'
-import type { CommitStats, GitHubPullRequest } from '@/types'
+import type { CommitStats, GitHubSearchResult } from '@/types'
 import { format } from 'date-fns'
 
 interface OverviewRecapProps {
   commits: CommitStats[]
-  pullRequests: { total_count: number; items: GitHubPullRequest[] } | null
+  pullRequests: GitHubSearchResult | null
 }
 
 export const OverviewRecap: React.FC<OverviewRecapProps> = ({

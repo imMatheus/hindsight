@@ -197,6 +197,7 @@ func GetTopRepos() ([]RepoData, error) {
 		FROM repos
 		WHERE repo_name != 'linux'
 		ORDER BY total_lines DESC
+		LIMIT 100
 	`
 
 	rows, err := db.Query(query)

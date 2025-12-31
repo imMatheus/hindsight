@@ -1,6 +1,6 @@
 import { LoadingAnimation } from '@/components/loading-animation'
 import { cn } from '@/lib/utils'
-import type { Repository } from '@/types'
+import type { TopReposResponse } from '@/types'
 import { useQuery } from '@tanstack/react-query'
 import posthog from 'posthog-js'
 import { useState } from 'react'
@@ -191,7 +191,7 @@ const Leaderboard = () => {
     data: topRepos,
     isLoading,
     isError,
-  } = useQuery<{ repos: Repository[] }>({
+  } = useQuery<TopReposResponse>({
     queryKey: ['topRepos'],
     queryFn: () =>
       fetch(`${import.meta.env.VITE_API_URL}/api/top-repos`).then((res) =>

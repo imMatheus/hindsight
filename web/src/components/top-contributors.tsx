@@ -45,7 +45,7 @@ export const TopContributors: React.FC<TopContributorsProps> = ({
   }
 
   return (
-    <div className="">
+    <section className="">
       {/* <h3 className="bg-core-flux text-obsidian-field w-max rounded-full px-7 py-4 text-6xl font-black">
         Top Contributors
       </h3> */}
@@ -127,6 +127,6 @@ export const TopContributors: React.FC<TopContributorsProps> = ({
           </div>
         ))}
       </div>
-    </div>
+    </section>
   )
 }

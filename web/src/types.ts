@@ -31,6 +31,8 @@ export type Repository = {
   linesHistogram: number[]
   totalStars: number
   totalCommits: number
+  language: string
+  size: number
 }
 
 export type GitHubRepo = {
@@ -40,7 +42,7 @@ export type GitHubRepo = {
 }
 
 export type GitHubPullRequest = {
-  id: number
+  id: number // int64 from backend but JavaScript handles this as number
   number: number
   title: string
   body: string
@@ -73,4 +75,39 @@ export type GitHubUser = {
   login: string
   avatar_url: string
   html_url: string
+}
+
+// GitHub API search result type
+export type GitHubSearchResult = {
+  total_count: number
+  items: GitHubPullRequest[]
+}
+
+// Main API response from /api/analyze endpoint
+export type AnalyzeResponse = {
+  totalAdded: number
+  totalRemoved: number
+  totalContributors: number
+  totalCommits: number
+  commits: CommitStatsAPI[]
+  github?: GitHubRepo
+  pullRequests?: GitHubSearchResult
+}
+
+// Top repos API response from /api/top-repos endpoint
+export type TopReposResponse = {
+  repos: Repository[]
+}
+
+// Interfaces used in components - can be moved here from component files
+export type WeekData = {
+  weekStart: Date
+  commits: CommitStats[]
+  totalCommits: number
+}
+
+export type DayData = {
+  dayName: string
+  commits: CommitStats[]
+  count: number
 }

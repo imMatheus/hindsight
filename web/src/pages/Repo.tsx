@@ -3,9 +3,9 @@ import { useQuery } from '@tanstack/react-query'
 import { CommitGraph } from '../components/commit-graph'
 import type {
   CommitStats,
-  CommitStatsAPI,
-  GitHubPullRequest,
-  GitHubRepo,
+  AnalyzeResponse,
+  WeekData,
+  DayData,
 } from '@/types'
 import { LoadingAnimation } from '@/components/loading-animation'
 import { cn } from '@/lib/utils'
@@ -36,15 +36,7 @@ async function analyzeRepo(username: string, repo: string) {
     throw new Error('Failed to analyze repository')
   }
 
-  const data = (await response.json()) as {
-    totalAdded: number
-    totalRemoved: number
-    totalContributors: number
-    totalCommits: number
-    commits: CommitStatsAPI[]
-    github?: GitHubRepo
-    pullRequests?: { total_count: number; items: GitHubPullRequest[] }
-  }
+  const data = (await response.json()) as AnalyzeResponse
 
   return {
     totalAdded: data.totalAdded,
@@ -241,17 +233,6 @@ export default function Repo() {
   )
 }
 
-interface WeekData {
-  weekStart: Date
-  commits: CommitStats[]
-  totalCommits: number
-}
-
-interface DayData {
-  dayName: string
-  commits: CommitStats[]
-  count: number
-}
 
 function getWeekStart(date: Date): Date {
   const d = new Date(date)
