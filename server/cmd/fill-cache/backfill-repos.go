@@ -132,9 +132,10 @@ func main() {
 		Username string
 		Repo     string
 	}{
-		{"immatheus", "css-subway-surfer"},
+		// {"immatheus", "css-subway-surfer"},
 		// {"microsoft", "vscode"},
 		// {"facebook", "react"},
+		// {"mrdoob", "three.js"},
 		// {"microsoft", "TypeScript"},
 		// {"vercel", "next.js"},
 		// {"kubernetes", "kubernetes"},
@@ -144,7 +145,7 @@ func main() {
 		// {"nodejs", "node"},
 		// {"pytorch", "pytorch"},
 		// {"django", "django"},
-		{"ansible", "ansible"},
+		// {"ansible", "ansible"},
 		// {"elastic", "elasticsearch"},
 		// {"apache", "spark"},
 		// {"rails", "rails"},

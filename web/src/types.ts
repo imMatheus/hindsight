@@ -98,7 +98,7 @@ export type AnalyzeResponse = {
 
 // Top repos API response from /api/top-repos endpoint
 export type TopReposResponse = {
-  repos: Repository[]
+  repos: Repository[] | null
 }
 
 // Interfaces used in components - can be moved here from component files

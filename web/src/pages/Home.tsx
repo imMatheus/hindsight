@@ -200,8 +200,6 @@ const Leaderboard = () => {
       ),
   })
 
-  if (isError) return null
-
   if (isLoading)
     return (
       <div className="w-full overflow-x-auto">
@@ -215,6 +213,7 @@ const Leaderboard = () => {
         </div>
       </div>
     )
+  if (isError || !topRepos?.repos || topRepos.repos.length === 0) return null
 
   return (
     <div className="w-full overflow-x-auto">

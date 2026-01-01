@@ -211,6 +211,7 @@ func GetTopRepos() ([]RepoData, error) {
 		FROM repos
 		WHERE repo_name != 'linux'
 		AND total_lines > 0
+		AND total_commits > 1
 		ORDER BY total_lines DESC
 		LIMIT 100
 	`
